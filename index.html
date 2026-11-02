@@ -168,6 +168,35 @@ nav.steps .btn{flex:0 1 auto;min-width:120px}
 .pop{animation:pop .6s ease}
 @keyframes pop{0%{transform:scale(.3) rotate(-30deg)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
 .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:50}
+/* ask Claude */
+.askbtn{align-self:center;border:0;background:var(--plain);color:#fff;border-radius:999px;padding:10px 22px;font-weight:800;font-family:var(--display);font-size:1.15rem;min-height:52px;box-shadow:0 5px 0 color-mix(in srgb,var(--plain) 60%,#000)}
+.askbtn:active{transform:translateY(3px);box-shadow:0 2px 0 color-mix(in srgb,var(--plain) 60%,#000)}
+.sheet{position:fixed;inset:0;z-index:40;background:rgba(10,20,40,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet .panel{background:var(--bg);width:min(760px,100%);height:min(88dvh,760px);border-radius:28px 28px 0 0;display:flex;flex-direction:column;
+  padding:16px max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));gap:10px}
+.sheet .head{display:flex;align-items:center;gap:10px}
+.sheet .head b{flex:1;font-family:var(--display);font-size:1.3rem}
+.chat{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px;overscroll-behavior:contain}
+.bub{max-width:88%;border-radius:20px;padding:10px 16px;line-height:1.65;white-space:pre-wrap;word-wrap:break-word}
+.bub.me{align-self:flex-start;background:var(--sun-bg);border-end-start-radius:6px}
+.bub.ai{align-self:flex-end;background:var(--card);border:2px solid var(--line);border-end-end-radius:6px}
+.bub.ai.warn{border-color:var(--wrong);background:var(--wrong-bg)}
+.bub .say{display:block;margin-top:6px;border:0;background:transparent;color:var(--plain);font-weight:700;padding:4px 0}
+.bub.wait{color:var(--soft)}
+.dots3 span{animation:blink 1.2s infinite;display:inline-block}.dots3 span:nth-child(2){animation-delay:.2s}.dots3 span:nth-child(3){animation-delay:.4s}
+@keyframes blink{50%{opacity:.2}}
+.sugs{display:flex;gap:8px;flex-wrap:wrap}
+.sugs button{border:2px solid var(--plain);color:var(--plain);background:var(--card);border-radius:14px;padding:6px 12px;font-weight:700;min-height:44px;text-align:right}
+.composer{display:flex;gap:8px;align-items:flex-end}
+.composer textarea{flex:1;font:inherit;border:2px solid var(--line);border-radius:16px;padding:10px 12px;background:var(--card);color:var(--ink);min-height:52px;max-height:120px;resize:none}
+.left{font-size:.9rem;color:var(--soft);font-weight:700;text-align:center}
+.log{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto}
+.log div{border:2px solid var(--line);border-radius:14px;padding:8px 12px;font-size:.95rem}
+.log small{color:var(--soft);display:block}
+.tag{font-size:.8rem;font-weight:700;border-radius:8px;padding:0 6px;background:var(--wrong-bg);color:var(--wrong)}
+.switch{display:flex;align-items:center;gap:10px;font-weight:700}
+.switch input{width:24px;height:24px;accent-color:var(--learn)}
+select{font:inherit;border:2px solid var(--line);border-radius:14px;padding:8px 12px;background:var(--card);color:var(--ink);min-height:48px}
 .confetti span{position:absolute;top:-40px;font-size:1.8rem;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
 
@@ -234,6 +263,7 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
       <h1 id="l-title"></h1>
     </div>
     <section class="card" id="card"></section>
+    <button class="askbtn" id="ask-open" hidden>🤖 اسأل Claude عن الدرس</button>
     <nav class="steps">
       <button class="btn ghost" id="prev">→ السابق</button>
       <button class="btn" id="next">التالي ←</button>
@@ -249,6 +279,7 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
       <h1 class="grow">ركن الأهل</h1>
     </div>
     <div id="p-kids"></div>
+    <div class="pcard" id="p-ai"></div>
     <div class="pcard">
       <h2>تثبيت التطبيق</h2>
       <p>بعد التثبيت يفتح التطبيق من أيقونة على الشاشة الرئيسية، ويعمل بدون إنترنت. فقط نشاط «جرّب مع Claude» يحتاج إنترنت.</p>
@@ -279,6 +310,18 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
   </div>
 </section>
 
+</div>
+<div class="sheet" id="ask" hidden role="dialog" aria-modal="true" aria-labelledby="ask-title">
+  <div class="panel">
+    <div class="head"><span aria-hidden="true" id="ask-logo"></span><b id="ask-title">اسأل Claude</b><button class="iconbtn" id="ask-close" aria-label="إغلاق">✕</button></div>
+    <div class="chat" id="chat" aria-live="polite"></div>
+    <div class="sugs" id="sugs"></div>
+    <div class="left" id="ask-left"></div>
+    <form class="composer" id="ask-form">
+      <textarea id="ask-q" rows="1" maxlength="300" placeholder="اكتب سؤالك عن الدرس…" aria-label="سؤالك"></textarea>
+      <button class="btn" id="ask-send" type="submit">أرسل</button>
+    </form>
+  </div>
 </div>
 <div class="confetti" id="confetti" aria-hidden="true"></div>
 
@@ -492,6 +535,7 @@ let S;
 try{S=JSON.parse(localStorage.getItem(KEY))||null}catch(e){S=null}
 if(!S||!S.prog){S=JSON.parse(JSON.stringify(DEF))}
 for(const k of ['s','b']){S.profiles[k]=Object.assign({},DEF.profiles[k],S.profiles[k]||{});S.prog[k]=Object.assign({stars:{},at:{},todo:{}},S.prog[k]||{})}
+S.ai=Object.assign({on:false,url:'',pin:'',limit:10},S.ai||{});
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 
 /* ---------- sound ---------- */
@@ -526,6 +570,7 @@ const starCount=k=>Object.keys(S.prog[k].stars).length;
 
 function show(view){
   ['home','map','lesson','parents','cert'].forEach(v=>$('v-'+v).hidden=v!==view);
+  if(typeof closeAsk==='function')closeAsk();
   document.body.className='lv-'+who;
   if(view!=='lesson'&&view!=='cert')$('confetti').innerHTML='';
   window.scrollTo(0,0);
@@ -566,6 +611,7 @@ function openLesson(i){
   $('l-eyebrow').textContent='الدرس '+AR(LESSONS[L].n)+' من ٨';
   $('l-title').textContent=LESSONS[L].title;
   $('l-av').innerHTML=`<span class="av" aria-hidden="true">${S.profiles[who].av}</span>`;
+  $('ask-open').hidden=!aiReady();chatHist=[];
   show('lesson');route('#'+who+'/'+LESSONS[L].n);renderStep();
 }
 $('l-close').onclick=openMap;
@@ -739,10 +785,102 @@ function openParents(){
    c.querySelector('[data-name]').oninput=e=>{S.profiles[k].name=e.target.value.trim()||DEF.profiles[k].name;save()};
    c.querySelectorAll('[data-av]').forEach(b=>b.onclick=()=>{S.profiles[k].av=b.dataset.av;save();c.querySelectorAll('[data-av]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
    c.querySelector('[data-reset]').onclick=()=>{if(confirm('هل تريد مسح نجوم '+S.profiles[k].name+' وتقدّمه؟')){S.prog[k]={stars:{},at:{},todo:{}};save();openParents()}}});
+  renderAiCard();
   show('parents');route('#parents');
 }
 $('to-parents').onclick=openParents;
 $('p-back').onclick=renderHome;
+
+/* ---------- ask Claude (through the family's own helper server) ---------- */
+const SUGS={1:{s:['هل أنت روبوت؟','هل تنام مثلي؟'],b:['ما الفرق بينك وبين الآلة الحاسبة؟','هل تفكّر مثل الإنسان؟']},
+ 2:{s:['كيف تعرف أن هذه قطة؟','كم صورة رأيت؟'],b:['لماذا تحتاج أمثلة كثيرة؟','هل يمكن أن تتعلّم شيئاً خطأ؟']},
+ 3:{s:['كيف تكتب القصص؟','هل تعرف كل الكلمات؟'],b:['كيف تعرف الكلمة التالية؟','لماذا تخطئ أحياناً؟']},
+ 4:{s:['كيف ترسم الصور؟','ما هي الضوضاء؟'],b:['لماذا تبدأ الصورة من نقاط عشوائية؟','لماذا تختلف الصورة كل مرة؟']},
+ 5:{s:['كيف أصف قطة جيداً؟','ما معنى الأسلوب؟'],b:['ماذا ينقص هذا الوصف: «ارسم ديناصوراً»؟','كيف أختار أسلوب الرسم؟']},
+ 6:{s:['ساعدني أختار اسماً لشخصيتي','ماذا تحب شخصيتي؟'],b:['أعطني فكرة لقصة قصيرة عن روبوت','كيف أجعل شخصيتي مميّزة؟']},
+ 7:{s:['ماذا لا أقول للذكاء الاصطناعي؟','هل تخطئ أحياناً؟'],b:['كيف أعرف أن الصورة مصنوعة؟','متى يكون استعمالك غشّاً؟']},
+ 8:{s:['ماذا أصنع في مشروعي؟','كيف أعرض رسمتي؟'],b:['كيف أقسّم مشروعي إلى خطوات؟','ماذا أقول عن دورك في مشروعي؟']}};
+let chatHist=[],asking=false;
+const aiReady=()=>S.ai.on&&/^https:\/\//.test(S.ai.url)&&!!S.ai.pin;
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
+function usedToday(k){const u=S.prog[k].aiDay;return u&&u.d===today()?u.n:0}
+function addUse(){const n=usedToday(who)+1;P().aiDay={d:today(),n};save()}
+function logQ(q,a,kind){const l=P().aiLog||[];l.unshift({t:Date.now(),n:LESSONS[L].n,q,a,kind});P().aiLog=l.slice(0,40);save()}
+const arVoice=()=>{try{return speechSynthesis.getVoices().find(v=>/^ar/i.test(v.lang))}catch(e){return null}};
+function speak(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);const v=arVoice();if(v)u.voice=v;u.lang=v?v.lang:'ar';u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+function bubble(kind,text,warn){
+  const b=document.createElement('div');b.className='bub '+kind+(warn?' warn':'');b.textContent=text;
+  if(kind==='ai'&&'speechSynthesis' in window){const s=document.createElement('button');s.className='say';s.type='button';s.textContent='🔊 اقرأ لي';s.onclick=()=>speak(text);b.appendChild(s)}
+  $('chat').appendChild(b);$('chat').scrollTop=$('chat').scrollHeight;return b}
+function paintLeft(){const left=Math.max(0,S.ai.limit-usedToday(who));
+  $('ask-left').textContent=left?`بقي لك ${AR(left)} ${left===1?'سؤال':'أسئلة'} اليوم`:'انتهت أسئلة اليوم. نلتقي غداً! 🌙';
+  $('ask-send').disabled=!left||asking;$('ask-q').disabled=!left}
+function openAsk(){
+  $('ask-logo').innerHTML=LOGO(36);
+  const n=LESSONS[L].n;
+  if(!$('chat').children.length||$('chat').dataset.k!==who+n){$('chat').innerHTML='';$('chat').dataset.k=who+n;chatHist=[];
+    bubble('ai',who==='s'?'مرحباً! أنا Claude 🤖 اسألني عن درس اليوم.':'مرحباً! أنا Claude 🤖 اسألني أي سؤال عن درس اليوم أو عن الذكاء الاصطناعي.')}
+  $('sugs').innerHTML=(SUGS[n]?.[who]||[]).map(q=>`<button type="button">${q}</button>`).join('');
+  $('sugs').querySelectorAll('button').forEach(b=>b.onclick=()=>ask(b.textContent));
+  paintLeft();$('ask').hidden=false;document.body.style.overflow='hidden';
+  if(who==='b')setTimeout(()=>$('ask-q').focus(),50);
+}
+function closeAsk(){if(!$('ask').hidden){$('ask').hidden=true;document.body.style.overflow='';try{speechSynthesis.cancel()}catch(e){}}}
+async function ask(q){
+  q=(q||'').trim();if(!q||asking)return;
+  if(usedToday(who)>=S.ai.limit){paintLeft();return}
+  if(!navigator.onLine){bubble('ai','أحتاج إلى الإنترنت لأجيب. اطلب من بابا أو ماما تشغيله. 📶',true);return}
+  asking=true;$('ask-q').value='';bubble('me',q);SFX.tap();
+  const w=bubble('ai','');w.className='bub ai wait';w.innerHTML='Claude يفكّر <span class="dots3"><span>•</span><span>•</span><span>•</span></span>';
+  paintLeft();
+  let ans,kind='answer';
+  try{
+    const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),60000);
+    const r=await fetch(S.ai.url,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,
+      body:JSON.stringify({pin:S.ai.pin,level:who,lesson:LESSONS[L].n,question:q,history:chatHist.slice(-6)})});
+    clearTimeout(tm);
+    const j=await r.json().catch(()=>({}));
+    if(r.status===401){ans='الرقم السري غير صحيح. اطلب من بابا أو ماما ضبطه في ركن الأهل.';kind='error'}
+    else if(j.answer){ans=j.answer;kind=j.kind||'answer'}
+    else{ans='حدثت مشكلة صغيرة. جرّب بعد قليل. 🔧';kind='error'}
+  }catch(e){ans='لم أستطع الوصول إلى Claude الآن. جرّب بعد قليل. 🔧';kind='error'}
+  w.remove();
+  const warn=kind!=='answer';bubble('ai',ans,warn);
+  if(kind!=='error'){addUse();logQ(q,ans,kind)}
+  if(kind==='answer'){chatHist.push({role:'user',text:q},{role:'assistant',text:ans});SFX.ok()}
+  asking=false;paintLeft();
+}
+$('ask-open').onclick=()=>{SFX.tap();openAsk()};
+$('ask-close').onclick=closeAsk;
+$('ask').addEventListener('click',e=>{if(e.target===$('ask'))closeAsk()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAsk()});
+$('ask-form').onsubmit=e=>{e.preventDefault();ask($('ask-q').value)};
+$('ask-q').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask($('ask-q').value)}});
+
+const KIND={off_topic:'خارج الموضوع',personal:'معلومة شخصية',refused:'رُفض'};
+function renderAiCard(){
+  const c=$('p-ai');const a=S.ai;
+  const logs=['s','b'].map(k=>{const l=S.prog[k].aiLog||[];return `<details><summary>آخر أسئلة ${esc(S.profiles[k].name)} (${AR(l.length)})</summary><div class="log">${
+    l.length?l.map(e=>`<div><small>${new Date(e.t).toLocaleString('ar')} ، الدرس ${AR(e.n)} ${KIND[e.kind]?`<span class="tag">${KIND[e.kind]}</span>`:''}</small><b>${esc(e.q)}</b><br>${esc(e.a)}</div>`).join(''):'<p class="note">لا أسئلة بعد.</p>'
+    }</div>${l.length?`<button class="btn ghost" data-clear="${k}" style="margin-top:8px">امسح القائمة</button>`:''}</details>`}).join('');
+  c.innerHTML=`<h2>اسأل Claude</h2>
+   <p>يتيح للأطفال سؤال Claude داخل الدروس عبر الخادم المساعد الخاص بكم. الأسئلة تبقى عن الذكاء الاصطناعي والدرس فقط، وتُحفظ القائمة على هذا الجهاز فقط.</p>
+   <label class="switch"><input type="checkbox" id="ai-on" ${a.on?'checked':''}> تشغيل «اسأل Claude»</label>
+   <label>عنوان الخادم المساعد<input type="text" id="ai-url" dir="ltr" inputmode="url" placeholder="https://….workers.dev" value="${esc(a.url)}"></label>
+   <label>الرقم السري للعائلة<input type="text" id="ai-pin" dir="ltr" inputmode="numeric" autocomplete="off" value="${esc(a.pin)}"></label>
+   <label>عدد الأسئلة لكل طفل في اليوم <select id="ai-limit">${[5,10,15,20,30].map(n=>`<option value="${n}" ${n===a.limit?'selected':''}>${AR(n)}</option>`).join('')}</select></label>
+   <div class="row"><button class="btn" id="ai-test">جرّب الاتصال</button><span class="note" id="ai-msg" aria-live="polite"></span></div>${logs}`;
+  const upd=()=>{a.on=$('ai-on').checked;a.url=$('ai-url').value.trim();a.pin=$('ai-pin').value.trim();a.limit=+$('ai-limit').value;save()};
+  ['ai-on','ai-url','ai-pin','ai-limit'].forEach(id=>$(id).addEventListener('change',upd));
+  ['ai-url','ai-pin'].forEach(id=>$(id).addEventListener('input',upd));
+  c.querySelectorAll('[data-clear]').forEach(b=>b.onclick=()=>{if(confirm('امسح قائمة الأسئلة؟')){S.prog[b.dataset.clear].aiLog=[];save();renderAiCard()}});
+  $('ai-test').onclick=async()=>{upd();const m=$('ai-msg');
+    if(!/^https:\/\//.test(a.url)){m.textContent='اكتب عنوان الخادم كاملاً، يبدأ بـ https://';return}
+    m.textContent='جارٍ الاتصال…';
+    try{const r=await fetch(a.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin:a.pin,check:true})});
+      m.textContent=r.ok?'✅ الاتصال يعمل.':r.status===401?'❌ الرقم السري غير صحيح.':'❌ الخادم ردّ بخطأ ('+r.status+').'}
+    catch(e){m.textContent='❌ لم أستطع الوصول إلى الخادم. تأكّد من العنوان.'}};
+}
 
 /* ---------- certificate ---------- */
 function openCert(){
