@@ -4,7 +4,12 @@ This small Cloudflare Worker lets the kids ask Claude questions inside the lesso
 It keeps the Anthropic API key secret, checks the family PIN, sends off-topic
 questions back with a friendly fixed reply, blocks phone numbers and e-mail
 addresses, and asks Claude for a short, child-safe answer in Arabic.
+It also draws simple pictures (SVG) for the drawing studio and writes stories
+turn by turn with the child, after checking that each idea suits young children.
 It stores nothing.
+
+**Updating:** when this file changes, open the Worker in Cloudflare → Edit code,
+replace everything with the new `worker.js`, and click Deploy. Your secrets stay.
 
 - `src/index.js` is the readable source.
 - `worker.js` is the same code bundled into one file (with the Anthropic SDK) to paste into Cloudflare.

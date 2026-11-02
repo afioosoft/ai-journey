@@ -196,6 +196,44 @@ nav.steps .btn{flex:0 1 auto;min-width:120px}
 .tag{font-size:.8rem;font-weight:700;border-radius:8px;padding:0 6px;background:var(--wrong-bg);color:var(--wrong)}
 .switch{display:flex;align-items:center;gap:10px;font-weight:700}
 .switch input{width:24px;height:24px;accent-color:var(--learn)}
+/* tools, badges, studio, stories, challenge */
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tool{border:0;background:var(--card);border-radius:22px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 5px 0 var(--line);text-align:center;min-height:110px;position:relative}
+.tool .ic{font-size:2.3rem;line-height:1}.tool b{font-family:var(--display);font-size:1.05rem;line-height:1.25}.tool small{color:var(--soft);font-weight:700;font-size:.85rem}
+.tool .dot{position:absolute;top:8px;inset-inline-end:10px;background:var(--wrong);color:#fff;border-radius:999px;font-size:.75rem;font-weight:800;padding:0 7px}
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{border:2px solid var(--line);background:var(--card);border-radius:16px;width:58px;height:58px;font-size:1.8rem;display:grid;place-items:center;padding:0}
+.badge.off{filter:grayscale(1);opacity:.35}
+.badge.on{border-color:var(--sun);background:var(--sun-bg)}
+.toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--card);border-radius:18px;padding:12px 18px;font-weight:700;z-index:60;max-width:min(92vw,520px);text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.tabs{display:flex;gap:8px}
+.tabs button{flex:1;border:2px solid var(--line);background:var(--card);border-radius:16px;padding:8px;font-weight:800;font-family:var(--display);font-size:1.1rem;min-height:48px}
+.tabs button[aria-selected="true"]{border-color:var(--sun);background:var(--sun-bg)}
+.canvasbox{width:min(100%,420px);aspect-ratio:1;align-self:center;border-radius:24px;background:var(--line);overflow:hidden;display:grid;place-items:center;position:relative}
+.canvasbox img{width:100%;height:100%;display:block;object-fit:contain;background:#fff}
+.canvasbox .wait{display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:700;color:var(--soft);text-align:center;padding:16px}
+.pencil{font-size:3rem;animation:draw 1.2s ease-in-out infinite}
+@keyframes draw{0%{transform:translate(-20px,8px) rotate(-10deg)}50%{transform:translate(20px,-8px) rotate(10deg)}100%{transform:translate(-20px,8px) rotate(-10deg)}}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.grid button{border:2px solid var(--line);background:#fff;border-radius:18px;padding:0;overflow:hidden;aspect-ratio:1}
+.grid img{width:100%;height:100%;display:block;object-fit:contain}
+textarea.free{font:inherit;width:100%;border:2px solid var(--line);border-radius:14px;padding:8px 12px;background:var(--card);color:var(--ink);min-height:72px;resize:vertical}
+.empty{color:var(--soft);text-align:center;padding:18px;font-weight:700}
+.story{display:flex;flex-direction:column;gap:10px}
+.page{border-radius:18px;padding:12px 16px;line-height:1.8;font-size:1.15rem}
+.page.claude{background:var(--plain-bg)}
+.page.child{background:var(--sun-bg)}
+.page small{display:block;font-size:.85rem;font-weight:800;color:var(--soft)}
+.books{display:flex;flex-direction:column;gap:10px}
+.bookbtn{border:2px solid var(--line);background:var(--card);border-radius:18px;padding:10px;display:flex;align-items:center;gap:12px;text-align:right;min-height:72px}
+.bookbtn .cv{width:60px;height:60px;border-radius:12px;background:var(--plain-bg);display:grid;place-items:center;font-size:2rem;overflow:hidden;flex:none}
+.bookbtn .cv img{width:100%;height:100%;object-fit:cover}
+.bookbtn b{font-family:var(--display);font-size:1.15rem;display:block}
+.reader{min-height:220px;display:flex;flex-direction:column;gap:12px;justify-content:center;text-align:center}
+.reader .txt{font-size:1.35rem;line-height:1.9;font-weight:500}
+.reader .cover{font-family:var(--display);font-weight:800;font-size:clamp(1.6rem,6vw,2.3rem)}
+.qnum{font-weight:800;color:var(--soft)}
+.streak{font-family:var(--display);font-weight:800;font-size:1.3rem;text-align:center}
 select{font:inherit;border:2px solid var(--line);border-radius:14px;padding:8px 12px;background:var(--card);color:var(--ink);min-height:48px}
 .confetti span{position:absolute;top:-40px;font-size:1.8rem;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
@@ -244,9 +282,12 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
       <div class="who-chip grow" id="map-who"></div>
       <div class="total" id="map-total"></div>
     </div>
+    <div class="tools" id="tools"></div>
     <h1>خريطة الرحلة</h1>
     <div class="path" id="path"></div>
     <div id="map-cert"></div>
+    <h2>شاراتي</h2>
+    <div class="badges" id="badges"></div>
   </div>
 </section>
 
@@ -268,6 +309,31 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
       <button class="btn ghost" id="prev">→ السابق</button>
       <button class="btn" id="next">التالي ←</button>
     </nav>
+  </div>
+</section>
+
+<!-- STUDIO -->
+<section id="v-studio" hidden>
+  <div class="wrap">
+    <div class="topbar"><button class="iconbtn" data-back aria-label="رجوع">→</button><h1 class="grow">استوديو الرسم 🎨</h1></div>
+    <div class="tabs" role="tablist"><button role="tab" id="st-t1" aria-selected="true">ارسم</button><button role="tab" id="st-t2" aria-selected="false">معرضي</button></div>
+    <section class="card" id="studio"></section>
+  </div>
+</section>
+
+<!-- STORIES -->
+<section id="v-story" hidden>
+  <div class="wrap">
+    <div class="topbar"><button class="iconbtn" data-back aria-label="رجوع">→</button><h1 class="grow">صانع القصص 📖</h1></div>
+    <section class="card" id="story"></section>
+  </div>
+</section>
+
+<!-- DAILY CHALLENGE -->
+<section id="v-daily" hidden>
+  <div class="wrap">
+    <div class="topbar"><button class="iconbtn" data-back aria-label="رجوع">→</button><h1 class="grow">تحدّي اليوم 🏅</h1></div>
+    <section class="card" id="daily"></section>
   </div>
 </section>
 
@@ -324,6 +390,7 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
   </div>
 </div>
 <div class="confetti" id="confetti" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status" hidden></div>
 
 <script>
 'use strict';
@@ -535,7 +602,7 @@ let S;
 try{S=JSON.parse(localStorage.getItem(KEY))||null}catch(e){S=null}
 if(!S||!S.prog){S=JSON.parse(JSON.stringify(DEF))}
 for(const k of ['s','b']){S.profiles[k]=Object.assign({},DEF.profiles[k],S.profiles[k]||{});S.prog[k]=Object.assign({stars:{},at:{},todo:{}},S.prog[k]||{})}
-S.ai=Object.assign({on:false,url:'',pin:'',limit:10},S.ai||{});
+S.ai=Object.assign({on:false,url:'',pin:'',limit:15},S.ai||{});
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 
 /* ---------- sound ---------- */
@@ -569,7 +636,7 @@ const P=()=>S.prog[who];
 const starCount=k=>Object.keys(S.prog[k].stars).length;
 
 function show(view){
-  ['home','map','lesson','parents','cert'].forEach(v=>$('v-'+v).hidden=v!==view);
+  ['home','map','lesson','parents','cert','studio','story','daily'].forEach(v=>$('v-'+v).hidden=v!==view);
   if(typeof closeAsk==='function')closeAsk();
   document.body.className='lv-'+who;
   if(view!=='lesson'&&view!=='cert')$('confetti').innerHTML='';
@@ -600,6 +667,7 @@ function openMap(){
   $('path').querySelectorAll('.stop').forEach(b=>b.onclick=()=>{SFX.tap();openLesson(+b.dataset.i)});
   $('map-cert').innerHTML=n===LESSONS.length?`<div class="banner"><p><b>أكملت الرحلة كلها!</b> تستحق شهادة.</p><button class="btn sun" id="to-cert">شهادتي 🏅</button></div>`:'';
   if(n===LESSONS.length)$('to-cert').onclick=openCert;
+  renderTools();renderBadges();checkBadges();
   show('map');route('#'+who);
 }
 $('map-home').onclick=renderHome;
@@ -746,7 +814,7 @@ const W={
  list:(s,card)=>{const saved=P().todo[LESSONS[L].n]||[];
   card.querySelectorAll('ol.todo input').forEach(c=>{const i=+c.dataset.i;c.checked=!!saved[i];c.closest('li').classList.toggle('done',c.checked);
    c.onchange=()=>{c.closest('li').classList.toggle('done',c.checked);const a=P().todo[LESSONS[L].n]||[];a[i]=c.checked;P().todo[LESSONS[L].n]=a;save();if(c.checked)SFX.ok()}})},
- star:()=>{const n=LESSONS[L].n;P().stars[n]=Date.now();save();SFX.star();confetti();}
+ star:()=>{const n=LESSONS[L].n;P().stars[n]=Date.now();save();SFX.star();confetti();setTimeout(checkBadges,1200)}
 };
 
 function renderStep(){
@@ -805,7 +873,7 @@ const aiReady=()=>S.ai.on&&/^https:\/\//.test(S.ai.url)&&!!S.ai.pin;
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
 function usedToday(k){const u=S.prog[k].aiDay;return u&&u.d===today()?u.n:0}
 function addUse(){const n=usedToday(who)+1;P().aiDay={d:today(),n};save()}
-function logQ(q,a,kind){const l=P().aiLog||[];l.unshift({t:Date.now(),n:LESSONS[L].n,q,a,kind});P().aiLog=l.slice(0,40);save()}
+function logQ(q,a,kind,n){const l=P().aiLog||[];l.unshift({t:Date.now(),n:n??LESSONS[L].n,q,a,kind});P().aiLog=l.slice(0,40);save()}
 const arVoice=()=>{try{return speechSynthesis.getVoices().find(v=>/^ar/i.test(v.lang))}catch(e){return null}};
 function speak(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);const v=arVoice();if(v)u.voice=v;u.lang=v?v.lang:'ar';u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
 function bubble(kind,text,warn){
@@ -847,7 +915,7 @@ async function ask(q){
   w.remove();
   const warn=kind!=='answer';bubble('ai',ans,warn);
   if(kind!=='error'){addUse();logQ(q,ans,kind)}
-  if(kind==='answer'){chatHist.push({role:'user',text:q},{role:'assistant',text:ans});SFX.ok()}
+  if(kind==='answer'){chatHist.push({role:'user',text:q},{role:'assistant',text:ans});SFX.ok();checkBadges()}
   asking=false;paintLeft();
 }
 $('ask-open').onclick=()=>{SFX.tap();openAsk()};
@@ -857,18 +925,18 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAsk()});
 $('ask-form').onsubmit=e=>{e.preventDefault();ask($('ask-q').value)};
 $('ask-q').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask($('ask-q').value)}});
 
-const KIND={off_topic:'خارج الموضوع',personal:'معلومة شخصية',refused:'رُفض'};
+const KIND={off_topic:'خارج الموضوع',personal:'معلومة شخصية',refused:'رُفض',not_for_kids:'غير مناسب'};
 function renderAiCard(){
   const c=$('p-ai');const a=S.ai;
   const logs=['s','b'].map(k=>{const l=S.prog[k].aiLog||[];return `<details><summary>آخر أسئلة ${esc(S.profiles[k].name)} (${AR(l.length)})</summary><div class="log">${
-    l.length?l.map(e=>`<div><small>${new Date(e.t).toLocaleString('ar')} ، الدرس ${AR(e.n)} ${KIND[e.kind]?`<span class="tag">${KIND[e.kind]}</span>`:''}</small><b>${esc(e.q)}</b><br>${esc(e.a)}</div>`).join(''):'<p class="note">لا أسئلة بعد.</p>'
+    l.length?l.map(e=>`<div><small>${new Date(e.t).toLocaleString('ar')} ، ${typeof e.n==='number'?'الدرس '+AR(e.n):e.n} ${KIND[e.kind]?`<span class="tag">${KIND[e.kind]}</span>`:''}</small><b>${esc(e.q)}</b><br>${esc(e.a)}</div>`).join(''):'<p class="note">لا أسئلة بعد.</p>'
     }</div>${l.length?`<button class="btn ghost" data-clear="${k}" style="margin-top:8px">امسح القائمة</button>`:''}</details>`}).join('');
   c.innerHTML=`<h2>اسأل Claude</h2>
    <p>يتيح للأطفال سؤال Claude داخل الدروس عبر الخادم المساعد الخاص بكم. الأسئلة تبقى عن الذكاء الاصطناعي والدرس فقط، وتُحفظ القائمة على هذا الجهاز فقط.</p>
    <label class="switch"><input type="checkbox" id="ai-on" ${a.on?'checked':''}> تشغيل «اسأل Claude»</label>
    <label>عنوان الخادم المساعد<input type="text" id="ai-url" dir="ltr" inputmode="url" placeholder="https://….workers.dev" value="${esc(a.url)}"></label>
    <label>الرقم السري للعائلة<input type="text" id="ai-pin" dir="ltr" inputmode="numeric" autocomplete="off" value="${esc(a.pin)}"></label>
-   <label>عدد الأسئلة لكل طفل في اليوم <select id="ai-limit">${[5,10,15,20,30].map(n=>`<option value="${n}" ${n===a.limit?'selected':''}>${AR(n)}</option>`).join('')}</select></label>
+   <label>عدد مرّات استعمال Claude لكل طفل في اليوم (أسئلة ورسومات وجمل القصص) <select id="ai-limit">${[5,10,15,20,30,50].map(n=>`<option value="${n}" ${n===a.limit?'selected':''}>${AR(n)}</option>`).join('')}</select></label>
    <div class="row"><button class="btn" id="ai-test">جرّب الاتصال</button><span class="note" id="ai-msg" aria-live="polite"></span></div>${logs}`;
   const upd=()=>{a.on=$('ai-on').checked;a.url=$('ai-url').value.trim();a.pin=$('ai-pin').value.trim();a.limit=+$('ai-limit').value;save()};
   ['ai-on','ai-url','ai-pin','ai-limit'].forEach(id=>$(id).addEventListener('change',upd));
@@ -880,6 +948,263 @@ function renderAiCard(){
     try{const r=await fetch(a.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin:a.pin,check:true})});
       m.textContent=r.ok?'✅ الاتصال يعمل.':r.status===401?'❌ الرقم السري غير صحيح.':'❌ الخادم ردّ بخطأ ('+r.status+').'}
     catch(e){m.textContent='❌ لم أستطع الوصول إلى الخادم. تأكّد من العنوان.'}};
+}
+
+/* ---------- shared: toast, AI calls ---------- */
+let toastT;
+function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,3200)}
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{try{speechSynthesis.cancel()}catch(e){}openMap()});
+const left=()=>Math.max(0,S.ai.limit-usedToday(who));
+const svgSrc=svg=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+function needAI(){return `<div class="empty">🔌 هذه الأداة تحتاج Claude.<br>اطلب من بابا أو ماما تشغيله في «ركن الأهل».</div>`}
+function noneLeft(){return `<div class="empty">انتهت محاولات اليوم. نلتقي غداً! 🌙</div>`}
+async function aiCall(body){
+  if(!navigator.onLine)return {fail:'أحتاج إلى الإنترنت. اطلب من بابا أو ماما تشغيله. 📶'};
+  try{const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),90000);
+    const r=await fetch(S.ai.url,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify(Object.assign({pin:S.ai.pin,level:who},body))});
+    clearTimeout(tm);const j=await r.json().catch(()=>({}));
+    if(r.status===401)return {fail:'الرقم السري غير صحيح. اطلب من بابا أو ماما ضبطه في ركن الأهل.'};
+    if(!r.ok)return {fail:'حدثت مشكلة صغيرة. جرّب بعد قليل. 🔧'};
+    return j}
+  catch(e){return {fail:'لم أستطع الوصول إلى Claude الآن. جرّب بعد قليل. 🔧'}}
+}
+
+/* ---------- map tools + badges ---------- */
+function renderTools(){
+  const d=P().daily||{};const doneToday=d.last===today();
+  $('tools').innerHTML=`
+   <button class="tool" data-go="studio"><span class="ic" aria-hidden="true">🎨</span><b>استوديو الرسم</b><small>${AR((P().gallery||[]).length)} رسمة</small></button>
+   <button class="tool" data-go="story"><span class="ic" aria-hidden="true">📖</span><b>صانع القصص</b><small>${AR((P().books||[]).length)} قصة</small></button>
+   <button class="tool" data-go="daily">${doneToday?'':'<span class="dot">جديد</span>'}<span class="ic" aria-hidden="true">🏅</span><b>تحدّي اليوم</b><small>${d.streak&&(d.last===today()||d.last===yesterday())?'🔥 '+AR(d.streak)+' أيام':doneToday?'✓ حللته':'٣ أسئلة'}</small></button>`;
+  $('tools').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{SFX.tap();({studio:openStudio,story:openStory,daily:openDaily})[b.dataset.go]()});
+}
+const yesterday=()=>{const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
+const BADGES=[
+ ['first','🌱','أول نجمة','أنهيت أول درس',p=>Object.keys(p.stars).length>=1],
+ ['half','🧭','نصف الرحلة','أنهيت ٤ دروس',p=>Object.keys(p.stars).length>=4],
+ ['all','🏆','الرحلة كاملة','أنهيت الدروس الثمانية',p=>Object.keys(p.stars).length>=8],
+ ['daily1','🏅','أول تحدٍّ','حللت أول تحدّي يومي',p=>(p.daily?.total||0)>=1],
+ ['streak3','🔥','٣ أيام متتالية','حللت التحدّي ٣ أيام متتالية',p=>(p.daily?.best||0)>=3],
+ ['streak7','🌟','أسبوع كامل','حللت التحدّي ٧ أيام متتالية',p=>(p.daily?.best||0)>=7],
+ ['perfect','🎯','بلا أخطاء','حللت تحدّي اليوم بلا أي خطأ',p=>!!p.daily?.perfect],
+ ['artist','🎨','رسّام صغير','رسمت أول رسمة مع Claude',p=>(p.gallery||[]).length>=1],
+ ['gallery5','🖼️','صاحب معرض','حفظت ٥ رسومات في معرضك',p=>(p.gallery||[]).length>=5],
+ ['author','📖','مؤلّف','أنهيت أول قصة مع Claude',p=>(p.books||[]).length>=1],
+ ['curious','🤔','فضولي','سألت Claude ١٠ أسئلة',p=>(p.aiLog||[]).filter(e=>e.kind==='answer').length>=10],
+];
+function checkBadges(){
+  const p=P();p.badges=p.badges||{};const fresh=[];
+  BADGES.forEach(([id,ic,nm,,test])=>{if(!p.badges[id]&&test(p)){p.badges[id]=Date.now();fresh.push(ic+' '+nm)}});
+  if(fresh.length){save();setTimeout(()=>{toast('شارة جديدة! '+fresh.join('، '));SFX.star();confetti()},300);if(!$('v-map').hidden)renderBadges()}
+}
+function renderBadges(){
+  const p=P();p.badges=p.badges||{};
+  $('badges').innerHTML=BADGES.map(([id,ic,nm,ds])=>`<button class="badge ${p.badges[id]?'on':'off'}" data-b="${id}" aria-label="${nm}${p.badges[id]?'':' (لم تحصل عليها بعد)'}">${ic}</button>`).join('');
+  $('badges').querySelectorAll('.badge').forEach(b=>b.onclick=()=>{const x=BADGES.find(z=>z[0]===b.dataset.b);toast(x[1]+' '+x[2]+': '+x[3]+(p.badges[x[0]]?' ✓':''))});
+}
+
+/* ---------- drawing studio ---------- */
+const DRAW={s:[{l:'ماذا أرسم؟',o:['قطة','ديناصور','صاروخ','بيت','سمكة','فيل']},{l:'بأي لون؟',o:['برتقالي','بنفسجي','أزرق','بألوان قوس قزح']},{l:'أين؟',o:['على القمر','في الغابة','تحت البحر','في الحديقة']}],
+ b:[{l:'الشيء',o:['قطة','ديناصور','صاروخ','بيت أحلام','روبوت','تنين صغير']},{l:'الألوان',o:['برتقالي','بنفسجي','أخضر','بألوان قوس قزح']},{l:'الخلفية',o:['على القمر','في غابة سحرية','تحت البحر','في الصحراء وقت الغروب']},{l:'الأسلوب',o:['كرتون','رسم أطفال بسيط','ألوان مائية','مكعبات']}]};
+let stTab=1,lastDraw=null,drawing=false;
+function drawPrompt(card){
+  const v=[...card.querySelectorAll('.opts[data-g]')].map(g=>g.querySelector('[aria-pressed="true"]').textContent);
+  const extra=(card.querySelector('#d-extra')?.value||'').trim();
+  const [th,col,pl,sty]=v;
+  return `${th} ${col.startsWith('بألوان')?col:'لونه '+col} ${pl}${sty?'، بأسلوب '+sty:''}${extra?'، '+extra:''}`;
+}
+function openStudio(){show('studio');route('#'+who+'/studio');stTab=1;paintStudio()}
+$('st-t1').onclick=()=>{stTab=1;paintStudio()};$('st-t2').onclick=()=>{stTab=2;paintStudio()};
+function paintStudio(){
+  $('st-t1').setAttribute('aria-selected',stTab===1);$('st-t2').setAttribute('aria-selected',stTab===2);
+  $('st-t2').textContent='معرضي ('+AR((P().gallery||[]).length)+')';
+  const c=$('studio');
+  if(stTab===2)return paintGallery(c);
+  if(!aiReady()){c.innerHTML=needAI();return}
+  c.innerHTML=`<p>${who==='s'?'اختر من كل صف، ثم اضغط «ارسم!». Claude يرسم بالأشكال والألوان.':'اختر المكوّنات، وأضف تفاصيلك الخاصة. Claude يرسم بالأشكال والخطوط (SVG)، أما مولّدات الصور فتبدأ من الضوضاء كما رأيت في الدرس ٤.'}</p>
+   <div class="chips">${DRAW[who].map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
+   <div class="g"><b><label for="d-extra">${who==='s'?'شيء إضافي؟ (اختياري)':'تفاصيل إضافية بكلماتك (اختياري)'}</label></b><textarea class="free" id="d-extra" maxlength="160" placeholder="${who==='s'?'مثلاً: يلبس قبعة':'مثلاً: يبتسم ويحمل مظلة صفراء'}"></textarea></div></div>
+   <div class="prompt" id="d-prompt"></div>
+   <button class="btn sun" id="d-go" style="align-self:center;font-size:1.25rem">🎨 ارسم!</button>
+   <div class="left" id="d-left"></div>
+   <div class="canvasbox" id="d-box" hidden></div>
+   <div class="row" id="d-acts" hidden style="justify-content:center"><button class="btn" id="d-save">💾 احفظ في معرضي</button><button class="btn ghost" id="d-again">🔁 ارسم مرة أخرى</button></div>`;
+  const upd=()=>{$('d-prompt').textContent='الوصف: '+drawPrompt(c)};
+  c.querySelectorAll('.opts[data-g] button').forEach(b=>b.onclick=()=>{b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));SFX.tap();upd()});
+  $('d-extra').oninput=upd;upd();
+  const paintLeftD=()=>{const n=left();$('d-left').textContent=n?`بقي لك ${AR(n)} اليوم`:'انتهت محاولات اليوم. نلتقي غداً! 🌙';$('d-go').disabled=!n||drawing};
+  paintLeftD();
+  const go=async()=>{
+    if(drawing||!left())return;drawing=true;const prompt=drawPrompt(c);paintLeftD();
+    const box=$('d-box');box.hidden=false;$('d-acts').hidden=true;
+    box.innerHTML=`<div class="wait"><span class="pencil" aria-hidden="true">✏️</span>Claude يرسم الآن…<br><small>قد يأخذ ذلك نصف دقيقة</small></div>`;
+    box.scrollIntoView({behavior:'smooth',block:'center'});
+    const j=await aiCall({mode:'draw',prompt});drawing=false;
+    if(j.svg){addUse();lastDraw={t:Date.now(),prompt,svg:j.svg};logQ('🎨 '+prompt,'(رسمة)','answer','الاستوديو');
+      box.innerHTML=`<img alt="رسمة Claude: ${esc(prompt)}" src="${svgSrc(j.svg)}">`;$('d-acts').hidden=false;$('d-save').disabled=false;$('d-save').textContent='💾 احفظ في معرضي';SFX.ok()}
+    else{if(!j.fail){addUse();logQ('🎨 '+prompt,j.answer||'',j.kind||'busy','الاستوديو')}
+      box.innerHTML=`<div class="wait">${esc(j.fail||j.answer||'حدثت مشكلة صغيرة.')}</div>`;SFX.no()}
+    paintLeftD();
+  };
+  $('d-go').onclick=go;$('d-again').onclick=go;
+  $('d-save').onclick=()=>{if(!lastDraw)return;const g=P().gallery||[];g.unshift(lastDraw);P().gallery=g.slice(0,40);lastDraw=null;save();
+    $('d-save').disabled=true;$('d-save').textContent='✓ حُفظت';$('st-t2').textContent='معرضي ('+AR(P().gallery.length)+')';SFX.star();checkBadges()};
+}
+function paintGallery(c){
+  const g=P().gallery||[];
+  if(!g.length){c.innerHTML=`<div class="empty">معرضك فارغ. ارسم أول رسمة! 🎨</div>`;return}
+  c.innerHTML=`<div class="grid">${g.map((d,i)=>`<button data-i="${i}" aria-label="${esc(d.prompt)}"><img alt="" src="${svgSrc(d.svg)}"></button>`).join('')}</div>`;
+  c.querySelectorAll('.grid button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,d=g[i];
+    c.innerHTML=`<div class="canvasbox"><img alt="${esc(d.prompt)}" src="${svgSrc(d.svg)}"></div><p class="center"><b>الوصف:</b> ${esc(d.prompt)}</p>
+     <p class="note center">${new Date(d.t).toLocaleDateString('ar')}</p>
+     <div class="row" style="justify-content:center"><button class="btn ghost" id="g-back">→ كل الرسومات</button><button class="btn ghost" id="g-del">🗑️ احذف</button></div>`;
+    $('g-back').onclick=()=>paintGallery(c);
+    $('g-del').onclick=()=>{if(confirm('تحذف هذه الرسمة؟')){g.splice(i,1);save();$('st-t2').textContent='معرضي ('+AR(g.length)+')';paintGallery(c)}}});
+}
+
+/* ---------- story maker ---------- */
+const STORY={s:[{l:'بطل القصة',o:['قطة صغيرة','روبوت لطيف','تنين ودود','أرنب سريع']},{l:'أين؟',o:['على القمر','في الغابة','تحت البحر','في مدينة الحلوى']}],
+ b:[{l:'البطل',o:['روبوت يحب الطبخ','تنين يخاف من الظلام','قطة مخترعة','سلحفاة رائدة فضاء']},{l:'المكان',o:['جزيرة طائرة','مدرسة تحت البحر','غابة سحرية','كوكب من الحلوى']},{l:'المشكلة',o:['فقد شيئاً مهمّاً','يريد صديقاً جديداً','يحضّر مفاجأة','وجد خريطة غريبة']}]};
+let cur_story=null,storyBusy=false;
+function openStory(){show('story');route('#'+who+'/story');cur_story=null;paintStoryHome()}
+function paintStoryHome(){
+  const c=$('story'),books=P().books||[];
+  c.innerHTML=`${aiReady()?'<button class="btn sun" id="sb-new" style="align-self:flex-start">✏️ قصة جديدة مع Claude</button>':needAI()}
+   <h2>قصصي</h2>
+   ${books.length?`<div class="books">${books.map((b,i)=>`<button class="bookbtn" data-i="${i}"><span class="cv" aria-hidden="true">${b.cover?`<img alt="" src="${svgSrc(b.cover)}">`:'📖'}</span><span><b>${esc(b.title||'قصتي')}</b><small class="note">${AR(b.pages.length)} صفحات ، ${new Date(b.t).toLocaleDateString('ar')}</small></span></button>`).join('')}</div>`:'<div class="empty">لا قصص بعد. اكتب أول قصة! 📖</div>'}`;
+  if($('sb-new'))$('sb-new').onclick=paintStorySetup;
+  c.querySelectorAll('.bookbtn').forEach(b=>b.onclick=()=>readBook(+b.dataset.i,0));
+}
+function paintStorySetup(){
+  const c=$('story');
+  c.innerHTML=`<h2>فكرة القصة</h2><p>${who==='s'?'اختر البطل والمكان، وClaude يكتب أول جملة. ثم تتناوبان: جملة منك وجملة من Claude.':'اختر البطل والمكان والمشكلة، أو اكتب فكرتك. ستتناوب مع Claude: جملة منك وجملة منه. أنت المؤلّف!'}</p>
+   <div class="chips">${STORY[who].map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
+   <div class="g"><b><label for="s-own">أو اكتب فكرتك (اختياري)</label></b><textarea class="free" id="s-own" maxlength="160"></textarea></div></div>
+   <div class="row"><button class="btn ghost" id="s-cancel">→ رجوع</button><button class="btn sun" id="s-start">ابدأ القصة ←</button></div><div class="feedback" id="s-msg"></div>`;
+  c.querySelectorAll('.opts[data-g] button').forEach(b=>b.onclick=()=>{b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));SFX.tap()});
+  $('s-cancel').onclick=paintStoryHome;
+  $('s-start').onclick=async()=>{
+    if(!left()){$('s-msg').textContent='انتهت محاولات اليوم. نلتقي غداً! 🌙';return}
+    const v=[...c.querySelectorAll('.opts[data-g]')].map(g=>g.querySelector('[aria-pressed="true"]').textContent);
+    const own=$('s-own').value.trim();
+    const setup=own||(who==='s'?`${v[0]} ${v[1]}`:`${v[0]} في ${v[1]}، ${v[2]}`);
+    cur_story={t:Date.now(),setup,title:'',pages:[],choices:[]};
+    await storyTurn('');
+  };
+}
+async function storyTurn(line,finish){
+  if(storyBusy)return;
+  if(!left()){toast('انتهت محاولات اليوم. نلتقي غداً! 🌙');return}
+  storyBusy=true;paintStoryWrite(true);
+  const j=await aiCall({mode:'story',setup:cur_story.setup,pages:cur_story.pages,line,finish:!!finish});
+  storyBusy=false;
+  if(j.kind==='story'){addUse();
+    if(line)cur_story.pages.push({by:'child',text:line});
+    cur_story.pages.push({by:'claude',text:j.sentence});cur_story.choices=j.choices||[];if(j.title)cur_story.title=j.title;
+    logQ('📖 '+(line||cur_story.setup),j.sentence,'answer','صانع القصص');SFX.ok();
+    if(finish){const books=P().books||[];books.unshift(cur_story);P().books=books.slice(0,30);save();checkBadges();return finishedStory()}
+    paintStoryWrite()}
+  else{if(!j.fail){addUse();logQ('📖 '+(line||cur_story.setup),j.answer||'',j.kind||'busy','صانع القصص')}
+    paintStoryWrite();$('w-msg').textContent=j.fail||j.answer||'حدثت مشكلة صغيرة.';$('w-msg').style.color='var(--wrong)';if(line)$('w-line').value=line;SFX.no()}
+}
+function paintStoryWrite(waiting){
+  const c=$('story'),st=cur_story,me=S.profiles[who];
+  if(!st.pages.length&&waiting){c.innerHTML=`<div class="canvasbox" style="aspect-ratio:auto;min-height:200px"><div class="wait"><span class="pencil" aria-hidden="true">✏️</span>Claude يكتب أول جملة…</div></div>`;return}
+  const canEnd=st.pages.length>=4;
+  c.innerHTML=`<p class="note">الفكرة: ${esc(st.setup)}</p><div class="story">${st.pages.map(pg=>`<div class="page ${pg.by}"><small>${pg.by==='child'?me.av+' '+esc(me.name):'🤖 Claude'}</small>${esc(pg.text)}</div>`).join('')}
+   ${waiting?'<div class="page claude wait"><small>🤖 Claude</small>يكتب… <span class="dots3"><span>•</span><span>•</span><span>•</span></span></div>':''}</div>
+   ${waiting?'':`<b>دورك! ماذا يحدث بعد ذلك؟</b>
+   ${st.choices.length?`<div class="sugs">${st.choices.map(ch=>`<button type="button">${esc(ch)}</button>`).join('')}</div>`:''}
+   <textarea class="free" id="w-line" maxlength="200" placeholder="${who==='s'?'اختر فكرة أو اطلب من بابا أو ماما كتابة جملتك':'اكتب جملتك هنا'}"></textarea>
+   <div class="row"><button class="btn sun" id="w-add">أضف جملتي ←</button>${canEnd?'<button class="btn ghost" id="w-end">🏁 اختم القصة</button>':''}<button class="btn ghost" id="w-quit">خروج</button></div>
+   <div class="left">${AR(left())} محاولات بقيت اليوم${canEnd?'':' ، تستطيع ختم القصة بعد ٤ صفحات'}</div><div class="feedback" id="w-msg" aria-live="polite"></div>`}`;
+  if(waiting)return;
+  c.querySelectorAll('.sugs button').forEach(b=>b.onclick=()=>{$('w-line').value=b.textContent;$('w-line').focus()});
+  $('w-add').onclick=()=>{const t=$('w-line').value.trim();if(!t){$('w-msg').textContent='اكتب جملة أو اختر فكرة أولاً.';return}storyTurn(t)};
+  if($('w-end'))$('w-end').onclick=()=>storyTurn($('w-line').value.trim(),true);
+  $('w-quit').onclick=()=>{if(confirm('تخرج بدون حفظ القصة؟'))paintStoryHome()};
+}
+function finishedStory(){
+  const c=$('story');confetti();SFX.star();
+  c.innerHTML=`<div class="reader"><div style="font-size:3rem">📖✨</div><div class="cover">${esc(cur_story.title||'قصتي')}</div><p>أنهيت قصتك مع Claude! حُفظت في «قصصي».</p></div>
+   <div class="row" style="justify-content:center"><button class="btn sun" id="f-read">اقرأ القصة</button>${aiReady()?'<button class="btn" id="f-cover">🎨 ارسم غلافاً</button>':''}<button class="btn ghost" id="f-home">قصصي</button></div><div class="feedback" id="f-msg"></div>`;
+  $('f-read').onclick=()=>readBook(0,0);$('f-home').onclick=paintStoryHome;
+  if($('f-cover'))$('f-cover').onclick=()=>drawCover(0,$('f-cover'),$('f-msg'));
+}
+async function drawCover(i,btn,msg){
+  if(!left()){msg.textContent='انتهت محاولات اليوم.';return}
+  const b=P().books[i];btn.disabled=true;btn.textContent='✏️ Claude يرسم…';
+  const j=await aiCall({mode:'draw',prompt:`غلاف قصة أطفال بعنوان «${b.title}»: ${b.setup}`});
+  if(!j.fail)addUse();
+  if(j.svg){b.cover=j.svg;save();btn.textContent='✓ رُسم الغلاف';SFX.ok();readBook(i,0)}else{btn.disabled=false;btn.textContent='🎨 ارسم غلافاً';msg.textContent=j.fail||j.answer||'حدثت مشكلة.'}
+}
+function readBook(i,pg){
+  const b=P().books[i],c=$('story'),n=b.pages.length,me=S.profiles[who];
+  const body=pg===0?`<div class="reader">${b.cover?`<div class="canvasbox"><img alt="غلاف القصة" src="${svgSrc(b.cover)}"></div>`:'<div style="font-size:4rem">📖</div>'}<div class="cover">${esc(b.title||'قصتي')}</div><p class="note">تأليف ${esc(me.name)} ${me.av} مع <bdi>Claude</bdi> 🤖</p></div>`
+   :`<div class="reader"><p class="note">صفحة ${AR(pg)} من ${AR(n)} ، ${b.pages[pg-1].by==='child'?me.av+' '+esc(me.name):'🤖 Claude'}</p><div class="txt">${esc(b.pages[pg-1].text)}</div>${pg===n?'<div class="cover">النهاية 🌟</div>':''}</div>`;
+  c.innerHTML=`${body}<div class="row" style="justify-content:center">${pg>0?'<button class="btn ghost" id="r-prev">→</button>':''}${pg>0&&'speechSynthesis' in window?'<button class="btn ghost" id="r-say">🔊 اقرأ لي</button>':''}${pg<n?'<button class="btn sun" id="r-next">'+(pg===0?'ابدأ القراءة ←':'←')+'</button>':''}</div>
+   <div class="row" style="justify-content:center"><button class="btn ghost" id="r-home">قصصي</button>${!b.cover&&aiReady()?'<button class="btn ghost" id="r-cover">🎨 ارسم غلافاً</button>':''}<button class="btn ghost" id="r-del">🗑️ احذف</button></div><div class="feedback" id="r-msg"></div>`;
+  if($('r-prev'))$('r-prev').onclick=()=>readBook(i,pg-1);
+  if($('r-next'))$('r-next').onclick=()=>{SFX.tap();readBook(i,pg+1)};
+  if($('r-say'))$('r-say').onclick=()=>speak(b.pages[pg-1].text);
+  if($('r-cover'))$('r-cover').onclick=()=>drawCover(i,$('r-cover'),$('r-msg'));
+  $('r-home').onclick=()=>{try{speechSynthesis.cancel()}catch(e){}paintStoryHome()};
+  $('r-del').onclick=()=>{if(confirm('تحذف هذه القصة؟')){P().books.splice(i,1);save();paintStoryHome()}};
+}
+
+/* ---------- daily challenge (offline) ---------- */
+const TF={1:{s:[['المصباح يتعلّم من الأمثلة.',0],['Claude تعلّم الكلام من قراءة نصوص كثيرة.',1]],b:[['الآلة الحاسبة تتعلّم من أخطائها.',0],['البرنامج العادي يتبع قواعد كتبها إنسان.',1]]},
+ 2:{s:[['الروبوت يحتاج صوراً كثيرة ليعرف القطة.',1],['يكفي أن يرى الروبوت قطة واحدة.',0]],b:[['الأمثلة المتنوّعة تساعد الذكاء الاصطناعي على التعلّم.',1],['القاعدة الواحدة لا تخطئ أبداً.',0]]},
+ 3:{s:[['Claude يكتب كلمة بعد كلمة.',1],['يوجد شخص صغير داخل الجهاز يكتب.',0]],b:[['Claude يتوقّع الكلمة التالية في كل خطوة.',1],['Claude لا يخطئ أبداً لأنه قرأ كثيراً.',0]]},
+ 4:{s:[['مولّد الصور يبدأ من نقاط عشوائية.',1],['مولّد الصور يقصّ صورة من الإنترنت.',0]],b:[['نفس الوصف قد يعطي صوراً مختلفة.',1],['الوصف المكتوب لا يؤثّر في الصورة.',0]]},
+ 5:{s:[['«ارسم قطة برتقالية تلبس قبعة» أوضح من «ارسم».',1],['الألوان لا تهمّ في الوصف.',0]],b:[['الوصف الجيد فيه الشيء والألوان والأسلوب والخلفية.',1],['كلما قصر الوصف كانت الصورة أدق.',0]]},
+ 6:{s:[['أنا صاحب فكرة الشخصية.',1],['Claude يقرّر كل شيء في مشروعي.',0]],b:[['أنا أقرّر الفكرة وأختار من اقتراحات Claude.',1],['من الأفضل أن يصنع Claude المشروع كله.',0]]},
+ 7:{s:[['لا أقول عنوان بيتي للذكاء الاصطناعي.',1],['كلمة السر أشاركها مع الجميع.',0]],b:[['ليست كل صورة على الإنترنت حقيقية.',1],['نسخ إجابة Claude وتسليمها كعملي أمر صادق.',0]]},
+ 8:{s:[['أتدرّب على عرض مشروعي قبل يوم العرض.',1],['لا أحتاج أن أشرح كيف صنعت مشروعي.',0]],b:[['أشرح في العرض ما فعلته أنا وما فعله الذكاء الاصطناعي.',1],['أخفي أنني استعملت الذكاء الاصطناعي.',0]]}};
+function seeded(seed){let x=0;for(const ch of seed)x=(x*31+ch.charCodeAt(0))>>>0;return()=>{x^=x<<13;x>>>=0;x^=x>>17;x^=x<<5;x>>>=0;return x/4294967296}}
+function dailyQuestions(){
+  const done=LESSONS.filter(l=>P().stars[l.n]);const pool=(done.length?done:[LESSONS[0]]);const qs=[];
+  pool.forEach(l=>{
+    (TF[l.n]?.[who]||[]).forEach(([t,ok])=>qs.push({q:'صح أم خطأ؟ '+t,c:[['صح ✓',ok],['خطأ ✗',ok?0:1]],n:l.n}));
+    l.steps.filter(st=>!st.only||st.only===who).forEach(st=>{
+      if(st.t==='quiz')qs.push({q:T(st.q),c:T(st.choices).map(([a,ok])=>[a,ok]),n:l.n});
+      if(st.t==='sort')st.items.forEach(([pic,name,ans])=>qs.push({q:`${pic} ${name}: ${T(st.title).replace(/^لعبة: /,'')}`,c:st.labels.map((lb,k)=>[lb.t.split(':')[0],k===ans?1:0]),n:l.n}));
+    })});
+  const r=seeded(today()+who);const pick=[];const cp=qs.slice();
+  while(pick.length<3&&cp.length)pick.push(cp.splice(Math.floor(r()*cp.length),1)[0]);
+  return pick;
+}
+function openDaily(){show('daily');route('#'+who+'/daily');runDaily(false)}
+function runDaily(practice){
+  const c=$('daily'),qs=dailyQuestions(),d=P().daily||{};
+  if(d.last===today()&&!practice){
+    c.innerHTML=`<div class="reader"><div style="font-size:3.5rem">✅</div><div class="streak">حللت تحدّي اليوم!</div><div class="streak">🔥 ${AR(d.streak||1)} ${(d.streak||1)===1?'يوم':'أيام'} متتالية</div><p>عُد غداً لتحدٍّ جديد وحافظ على السلسلة.</p></div>
+     <div class="row" style="justify-content:center"><button class="btn ghost" id="dy-again">تدرّب مرة أخرى</button><button class="btn" id="dy-map">إلى الخريطة</button></div>`;
+    $('dy-again').onclick=()=>runDaily(true);$('dy-map').onclick=openMap;return}
+  let i=0,mistakes=0;
+  const step=()=>{
+    if(i>=qs.length)return finish();
+    const q=qs[i];let wrong=false;
+    c.innerHTML=`<div class="qnum">السؤال ${AR(i+1)} من ${AR(qs.length)} ، من الدرس ${AR(q.n)}</div><p class="lead">${q.q}</p>
+     <div class="choices">${shuffle(q.c).map(([a,ok])=>`<button data-ok="${ok}">${a}</button>`).join('')}</div><div class="feedback" id="dy-fb" aria-live="polite"></div>`;
+    c.querySelectorAll('.choices button').forEach(b=>b.onclick=()=>{
+      const fb=$('dy-fb');
+      if(b.dataset.ok==='1'){b.classList.add('right');fb.style.color='var(--learn)';fb.textContent='صحيح! 👏';SFX.ok();
+        c.querySelectorAll('.choices button').forEach(x=>x.disabled=true);
+        const nb=document.createElement('button');nb.className='btn sun';nb.textContent=i<qs.length-1?'السؤال التالي ←':'النتيجة ←';nb.style.alignSelf='flex-start';nb.onclick=()=>{i++;step()};c.appendChild(nb)}
+      else{if(!wrong){wrong=true;mistakes++}b.classList.add('no');b.disabled=true;fb.style.color='var(--wrong)';fb.textContent='فكّر مرة أخرى.';SFX.no()}});
+  };
+  const finish=()=>{
+    if(!practice){const p=P();const dd=p.daily||{};
+      dd.streak=dd.last===yesterday()?(dd.streak||0)+1:dd.last===today()?(dd.streak||1):1;dd.last=today();dd.total=(dd.total||0)+1;dd.best=Math.max(dd.best||0,dd.streak);
+      if(!mistakes)dd.perfect=true;p.daily=dd;save()}
+    const dd=P().daily||{};confetti();SFX.star();
+    c.innerHTML=`<div class="reader"><div style="font-size:3.5rem">${mistakes?'🏅':'🎯'}</div><div class="streak">${mistakes?'أحسنت! أنهيت التحدّي':'رائع! بلا أي خطأ'}</div>
+     ${practice?'<p>كان هذا تدريباً.</p>':`<div class="streak">🔥 ${AR(dd.streak)} ${dd.streak===1?'يوم':'أيام'} متتالية</div>`}</div>
+     <div class="row" style="justify-content:center"><button class="btn" id="dy-map">إلى الخريطة</button></div>`;
+    $('dy-map').onclick=openMap;if(!practice)checkBadges();
+  };
+  step();
 }
 
 /* ---------- certificate ---------- */
@@ -906,6 +1231,7 @@ if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostn
 (function start(){
   const h=location.hash.slice(1);const m=/^(s|b)(?:\/(\d))?$/.exec(h);
   if(h==='parents')return openParents();
+  const t=/^(s|b)\/(studio|story|daily)$/.exec(h);if(t){who=t[1];return ({studio:openStudio,story:openStory,daily:openDaily})[t[2]]()}
   if(m){who=m[1];if(m[2]){const i=LESSONS.findIndex(l=>l.n===+m[2]);if(i>=0)return openLesson(i)}return openMap()}
   renderHome();
 })();
