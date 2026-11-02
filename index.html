@@ -146,7 +146,7 @@ canvas{width:100%;max-width:440px;border-radius:18px;align-self:center;backgroun
 .chips .opts{display:flex;gap:8px;flex-wrap:wrap}
 .chips .opts button{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:6px 14px;min-height:44px}
 .chips .opts button[aria-pressed="true"]{border-color:var(--learn);background:var(--learn-bg);font-weight:700}
-input[type=text]{font:inherit;width:100%;border:2px solid var(--line);border-radius:14px;padding:8px 12px;background:var(--card);color:var(--ink);min-height:48px}
+input[type=text],input[type=password]{font:inherit;width:100%;border:2px solid var(--line);border-radius:14px;padding:8px 12px;background:var(--card);color:var(--ink);min-height:48px}input[type=password]{letter-spacing:4px}
 .prompt{border:2px dashed var(--line);border-radius:16px;padding:14px 18px;font-weight:500;user-select:text;-webkit-user-select:text}
 ol.todo{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
 ol.todo li{display:flex;gap:10px;align-items:center;border:2px solid var(--line);border-radius:14px;padding:8px 12px}
@@ -976,7 +976,8 @@ function renderAiCard(){
    <p>يتيح للأطفال سؤال نبيه داخل الدروس عبر الخادم المساعد الخاص بكم. الأسئلة تبقى عن الذكاء الاصطناعي والدرس فقط، وتُحفظ القائمة على هذا الجهاز فقط.</p>
    <label class="switch"><input type="checkbox" id="ai-on" ${a.on?'checked':''}> تشغيل «اسأل نبيه»</label>
    <label>عنوان الخادم المساعد<input type="text" id="ai-url" dir="ltr" inputmode="url" placeholder="https://….workers.dev" value="${esc(a.url)}"></label>
-   <label>الرقم السري للعائلة<input type="text" id="ai-pin" dir="ltr" inputmode="numeric" autocomplete="off" value="${esc(a.pin)}"></label>
+   <label>الرقم السري للعائلة<input type="password" id="ai-pin" dir="ltr" inputmode="numeric" autocomplete="new-password" value="${esc(a.pin)}" placeholder="اكتب الرقم السري"></label>
+   <p class="note">الرقم مخفي ولا يظهر بعد حفظه. لتغييره امسحه واكتب الجديد، ثم اضغط «اختبر الاتصال» للتأكد منه.</p>
    <label>عدد مرّات استعمال نبيه لكل طفل في اليوم (أسئلة ورسومات وجمل القصص) <select id="ai-limit">${[5,10,15,20,30,50].map(n=>`<option value="${n}" ${n===a.limit?'selected':''}>${AR(n)}</option>`).join('')}</select></label>
    <div class="row"><button class="btn" id="ai-test">جرّب الاتصال</button><span class="note" id="ai-msg" aria-live="polite"></span></div>${logs}`;
   const upd=()=>{a.on=$('ai-on').checked;a.url=$('ai-url').value.trim();a.pin=$('ai-pin').value.trim();a.limit=+$('ai-limit').value;save()};
