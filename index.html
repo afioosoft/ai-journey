@@ -383,7 +383,7 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
     <div class="pcard" id="p-ai"></div>
     <div class="pcard">
       <h2>تثبيت التطبيق</h2>
-      <p>بعد التثبيت يفتح التطبيق من أيقونة على الشاشة الرئيسية، ويعمل بدون إنترنت. فقط نشاط «جرّب مع Claude» يحتاج إنترنت.</p>
+      <p>بعد التثبيت يفتح التطبيق من أيقونة على الشاشة الرئيسية، ويعمل بدون إنترنت. فقط «اسأل نبيه» والرسم والقصص مع نبيه تحتاج إنترنت.</p>
       <details><summary>آيباد أو آيفون</summary><ol><li>افتح رابط التطبيق في Safari.</li><li>اضغط زر المشاركة (المربّع والسهم).</li><li>اختر «إضافة إلى الشاشة الرئيسية» ثم «إضافة».</li></ol></details>
       <details><summary>جهاز أندرويد</summary><ol><li>افتح رابط التطبيق في Chrome.</li><li>اضغط «ثبّت التطبيق» في الصفحة الأولى، أو من قائمة ⋮ اختر «تثبيت التطبيق».</li></ol></details>
       <details><summary>حاسوب ويندوز أو ماك</summary><ol><li>افتح الرابط في Chrome أو Edge.</li><li>اضغط أيقونة التثبيت في شريط العنوان، أو زر «ثبّت التطبيق».</li></ol></details>
@@ -914,8 +914,16 @@ const today=()=>{const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+
 function usedToday(k){const u=S.prog[k].aiDay;return u&&u.d===today()?u.n:0}
 function addUse(){const n=usedToday(who)+1;P().aiDay={d:today(),n};save()}
 function logQ(q,a,kind,n){const l=P().aiLog||[];l.unshift({t:Date.now(),n:n??LESSONS[L].n,q,a,kind});P().aiLog=l.slice(0,40);save()}
-const arVoice=()=>{try{return speechSynthesis.getVoices().find(v=>/^ar/i.test(v.lang))}catch(e){return null}};
-function speak(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);const v=arVoice();if(v)u.voice=v;u.lang=v?v.lang:'ar';u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+const arVoice=()=>{try{const vs=speechSynthesis.getVoices().filter(v=>/^ar/i.test(v.lang));return vs.find(v=>/google|natural|online/i.test(v.name))||vs[0]||null}catch(e){return null}};
+const noEmoji=t=>String(t).replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}️‍⃣]/gu,' ').replace(/\s+/g,' ').replace(/ ([،.!؟])/g,'$1').trim();
+let voicesReady=null;
+const waitVoices=()=>voicesReady||(voicesReady=new Promise(r=>{try{if(speechSynthesis.getVoices().length)return r();speechSynthesis.addEventListener('voiceschanged',()=>r(),{once:true});setTimeout(r,1500)}catch(e){r()}}));
+function noArVoiceHelp(){const ua=navigator.userAgent;
+  const how=/iPad|iPhone|Macintosh/.test(ua)?'الإعدادات ← تسهيلات الاستخدام ← المحتوى المنطوق ← الأصوات ← العربية':/Android/.test(ua)?'الإعدادات ← اللغة ← تحويل النص إلى كلام ← ثبّت بيانات صوت العربية':/Windows/.test(ua)?'الإعدادات ← الوقت واللغة ← الكلام ← أضف صوتاً ← العربية، ثم أعد فتح التطبيق':'أضف صوتاً عربياً من إعدادات الجهاز';
+  toast('لا يوجد صوت عربي على هذا الجهاز بعد. ليقرأ التطبيق بالعربية: '+how)}
+async function speak(t){try{speechSynthesis.cancel();await waitVoices();const v=arVoice();
+  if(!v){noArVoiceHelp();return}
+  const u=new SpeechSynthesisUtterance(noEmoji(t));u.voice=v;u.lang=v.lang;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
 function bubble(kind,text,warn){
   const b=document.createElement('div');b.className='bub '+kind+(warn?' warn':'');b.textContent=text;
   if(kind==='ai'&&'speechSynthesis' in window){const s=document.createElement('button');s.className='say';s.type='button';s.textContent='🔊 اقرأ لي';s.onclick=()=>speak(text);b.appendChild(s)}
@@ -994,7 +1002,7 @@ function renderAiCard(){
 
 /* ---------- shared: toast, AI calls ---------- */
 let toastT;
-function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,3200)}
+function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,Math.max(3200,msg.length*70))}
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{try{speechSynthesis.cancel()}catch(e){}openMap()});
 const left=()=>Math.max(0,S.ai.limit-usedToday(who));
 const svgSrc=svg=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
@@ -1490,7 +1498,7 @@ Object.assign(W,{
   card.querySelectorAll('#sp-lines button').forEach(b=>b.onclick=()=>{text=b.textContent;card.querySelectorAll('#sp-lines button').forEach(x=>x.style.background=x===b?'var(--sun-bg)':'');const o=card.querySelector('#sp-own');if(o)o.value=''});
   if(!('speechSynthesis' in window)){note.textContent='هذا الجهاز لا يدعم الصوت. جرّب على جهاز آخر.';card.querySelector('#sp-go').disabled=true;return}
   card.querySelector('#sp-go').onclick=()=>{const o=card.querySelector('#sp-own');const t=(o&&o.value.trim())||text;
-    try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);const v=arVoice();if(v)u.voice=v;u.lang=v?v.lang:'ar';u.rate=.9;
+    try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(noEmoji(t));const v=arVoice();if(v)u.voice=v;u.lang=v?v.lang:'ar';u.rate=.9;
       u.onstart=()=>wave.classList.add('on');u.onend=u.onerror=()=>wave.classList.remove('on');speechSynthesis.speak(u);
       note.textContent=v?'الحاسوب حوّل الكلمات إلى أمواج صوت! 〰️':'لا يوجد صوت عربي على هذا الجهاز، لذلك قد يبدو النطق غريباً. هذا مثال على أن الحاسوب يحتاج تدريباً على كل لغة!';
       setTimeout(()=>wave.classList.remove('on'),8000)}catch(e){note.textContent='لم يعمل الصوت على هذا الجهاز.'}};
