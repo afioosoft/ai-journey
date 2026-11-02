@@ -332,7 +332,7 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
       <h1 id="l-title"></h1>
     </div>
     <section class="card" id="card"></section>
-    <button class="askbtn" id="ask-open" hidden>🤖 اسأل Claude عن الدرس</button>
+    <button class="askbtn" id="ask-open" hidden>🤖 اسأل نبيه عن الدرس</button>
     <nav class="steps">
       <button class="btn ghost" id="prev">→ السابق</button>
       <button class="btn" id="next">التالي ←</button>
@@ -414,7 +414,7 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
 </div>
 <div class="sheet" id="ask" hidden role="dialog" aria-modal="true" aria-labelledby="ask-title">
   <div class="panel">
-    <div class="head"><span aria-hidden="true" id="ask-logo"></span><b id="ask-title">اسأل Claude</b><button class="iconbtn" id="ask-close" aria-label="إغلاق">✕</button></div>
+    <div class="head"><span aria-hidden="true" id="ask-logo"></span><b id="ask-title">اسأل نبيه<small style="display:block;font-size:.7rem;color:var(--soft);font-weight:700">مساعد آلي يعمل بواسطة Claude</small></b><button class="iconbtn" id="ask-close" aria-label="إغلاق">✕</button></div>
     <div class="chat" id="chat" aria-live="polite"></div>
     <div class="sugs" id="sugs"></div>
     <div class="left" id="ask-left"></div>
@@ -927,7 +927,7 @@ function openAsk(){
   $('ask-logo').innerHTML=LOGO(36);
   const n=LESSONS[L].n;
   if(!$('chat').children.length||$('chat').dataset.k!==who+n){$('chat').innerHTML='';$('chat').dataset.k=who+n;chatHist=[];
-    bubble('ai',who==='s'?'مرحباً! أنا Claude 🤖 اسألني عن درس اليوم.':'مرحباً! أنا Claude 🤖 اسألني أي سؤال عن درس اليوم أو عن الذكاء الاصطناعي.')}
+    bubble('ai',who==='s'?'مرحباً! أنا نبيه 🤖، مساعدك الآلي. اسألني عن درس اليوم.':'مرحباً! أنا نبيه 🤖، مساعدك الآلي. اسألني أي سؤال عن درس اليوم أو عن الذكاء الاصطناعي.')}
   $('sugs').innerHTML=(SUGS[n]?.[who]||[]).map(q=>`<button type="button">${q}</button>`).join('');
   $('sugs').querySelectorAll('button').forEach(b=>b.onclick=()=>ask(b.textContent));
   paintLeft();$('ask').hidden=false;document.body.style.overflow='hidden';
@@ -939,7 +939,7 @@ async function ask(q){
   if(usedToday(who)>=S.ai.limit){paintLeft();return}
   if(!navigator.onLine){bubble('ai','أحتاج إلى الإنترنت لأجيب. اطلب من بابا أو ماما تشغيله. 📶',true);return}
   asking=true;$('ask-q').value='';bubble('me',q);SFX.tap();
-  const w=bubble('ai','');w.className='bub ai wait';w.innerHTML='Claude يفكّر <span class="dots3"><span>•</span><span>•</span><span>•</span></span>';
+  const w=bubble('ai','');w.className='bub ai wait';w.innerHTML='نبيه يفكّر <span class="dots3"><span>•</span><span>•</span><span>•</span></span>';
   paintLeft();
   let ans,kind='answer';
   try{
@@ -951,7 +951,7 @@ async function ask(q){
     if(r.status===401){ans='الرقم السري غير صحيح. اطلب من بابا أو ماما ضبطه في ركن الأهل.';kind='error'}
     else if(j.answer){ans=j.answer;kind=j.kind||'answer'}
     else{ans='حدثت مشكلة صغيرة. جرّب بعد قليل. 🔧';kind='error'}
-  }catch(e){ans='لم أستطع الوصول إلى Claude الآن. جرّب بعد قليل. 🔧';kind='error'}
+  }catch(e){ans='لم أستطع الوصول إلى نبيه الآن. جرّب بعد قليل. 🔧';kind='error'}
   w.remove();
   const warn=kind!=='answer';bubble('ai',ans,warn);
   if(kind!=='error'){addUse();logQ(q,ans,kind)}
@@ -971,12 +971,13 @@ function renderAiCard(){
   const logs=['s','b'].map(k=>{const l=S.prog[k].aiLog||[];return `<details><summary>آخر أسئلة ${esc(S.profiles[k].name)} (${AR(l.length)})</summary><div class="log">${
     l.length?l.map(e=>`<div><small>${new Date(e.t).toLocaleString('ar')} ، ${typeof e.n==='number'?'الدرس '+AR(e.n):e.n} ${KIND[e.kind]?`<span class="tag">${KIND[e.kind]}</span>`:''}</small><b>${esc(e.q)}</b><br>${esc(e.a)}</div>`).join(''):'<p class="note">لا أسئلة بعد.</p>'
     }</div>${l.length?`<button class="btn ghost" data-clear="${k}" style="margin-top:8px">امسح القائمة</button>`:''}</details>`}).join('');
-  c.innerHTML=`<h2>اسأل Claude</h2>
-   <p>يتيح للأطفال سؤال Claude داخل الدروس عبر الخادم المساعد الخاص بكم. الأسئلة تبقى عن الذكاء الاصطناعي والدرس فقط، وتُحفظ القائمة على هذا الجهاز فقط.</p>
-   <label class="switch"><input type="checkbox" id="ai-on" ${a.on?'checked':''}> تشغيل «اسأل Claude»</label>
+  c.innerHTML=`<h2>اسأل نبيه</h2>
+   <p class="note">«نبيه» هو المساعد الآلي في التطبيق، ويعمل بواسطة Claude من شركة Anthropic.</p>
+   <p>يتيح للأطفال سؤال نبيه داخل الدروس عبر الخادم المساعد الخاص بكم. الأسئلة تبقى عن الذكاء الاصطناعي والدرس فقط، وتُحفظ القائمة على هذا الجهاز فقط.</p>
+   <label class="switch"><input type="checkbox" id="ai-on" ${a.on?'checked':''}> تشغيل «اسأل نبيه»</label>
    <label>عنوان الخادم المساعد<input type="text" id="ai-url" dir="ltr" inputmode="url" placeholder="https://….workers.dev" value="${esc(a.url)}"></label>
    <label>الرقم السري للعائلة<input type="text" id="ai-pin" dir="ltr" inputmode="numeric" autocomplete="off" value="${esc(a.pin)}"></label>
-   <label>عدد مرّات استعمال Claude لكل طفل في اليوم (أسئلة ورسومات وجمل القصص) <select id="ai-limit">${[5,10,15,20,30,50].map(n=>`<option value="${n}" ${n===a.limit?'selected':''}>${AR(n)}</option>`).join('')}</select></label>
+   <label>عدد مرّات استعمال نبيه لكل طفل في اليوم (أسئلة ورسومات وجمل القصص) <select id="ai-limit">${[5,10,15,20,30,50].map(n=>`<option value="${n}" ${n===a.limit?'selected':''}>${AR(n)}</option>`).join('')}</select></label>
    <div class="row"><button class="btn" id="ai-test">جرّب الاتصال</button><span class="note" id="ai-msg" aria-live="polite"></span></div>${logs}`;
   const upd=()=>{a.on=$('ai-on').checked;a.url=$('ai-url').value.trim();a.pin=$('ai-pin').value.trim();a.limit=+$('ai-limit').value;save()};
   ['ai-on','ai-url','ai-pin','ai-limit'].forEach(id=>$(id).addEventListener('change',upd));
@@ -996,7 +997,7 @@ function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTim
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{try{speechSynthesis.cancel()}catch(e){}openMap()});
 const left=()=>Math.max(0,S.ai.limit-usedToday(who));
 const svgSrc=svg=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
-function needAI(){return `<div class="empty">🔌 هذه الأداة تحتاج Claude.<br>اطلب من بابا أو ماما تشغيله في «ركن الأهل».</div>`}
+function needAI(){return `<div class="empty">🔌 هذه الأداة تحتاج نبيه.<br>اطلب من بابا أو ماما تشغيله في «ركن الأهل».</div>`}
 function noneLeft(){return `<div class="empty">انتهت محاولات اليوم. نلتقي غداً! 🌙</div>`}
 async function aiCall(body){
   if(!navigator.onLine)return {fail:'أحتاج إلى الإنترنت. اطلب من بابا أو ماما تشغيله. 📶'};
@@ -1006,7 +1007,7 @@ async function aiCall(body){
     if(r.status===401)return {fail:'الرقم السري غير صحيح. اطلب من بابا أو ماما ضبطه في ركن الأهل.'};
     if(!r.ok)return {fail:'حدثت مشكلة صغيرة. جرّب بعد قليل. 🔧'};
     return j}
-  catch(e){return {fail:'لم أستطع الوصول إلى Claude الآن. جرّب بعد قليل. 🔧'}}
+  catch(e){return {fail:'لم أستطع الوصول إلى نبيه الآن. جرّب بعد قليل. 🔧'}}
 }
 
 /* ---------- map tools + badges ---------- */
@@ -1031,10 +1032,10 @@ const BADGES=[
  ['streak3','🔥','٣ أيام متتالية','حللت التحدّي ٣ أيام متتالية',p=>(p.daily?.best||0)>=3],
  ['streak7','🌟','أسبوع كامل','حللت التحدّي ٧ أيام متتالية',p=>(p.daily?.best||0)>=7],
  ['perfect','🎯','بلا أخطاء','حللت تحدّي اليوم بلا أي خطأ',p=>!!p.daily?.perfect],
- ['artist','🎨','رسّام صغير','رسمت أول رسمة مع Claude',p=>(p.gallery||[]).length>=1],
+ ['artist','🎨','رسّام صغير','رسمت أول رسمة مع نبيه',p=>(p.gallery||[]).length>=1],
  ['gallery5','🖼️','صاحب معرض','حفظت ٥ رسومات في معرضك',p=>(p.gallery||[]).length>=5],
- ['author','📖','مؤلّف','أنهيت أول قصة مع Claude',p=>(p.books||[]).length>=1],
- ['curious','🤔','فضولي','سألت Claude ١٠ أسئلة',p=>(p.aiLog||[]).filter(e=>e.kind==='answer').length>=10],
+ ['author','📖','مؤلّف','أنهيت أول قصة مع نبيه',p=>(p.books||[]).length>=1],
+ ['curious','🤔','فضولي','سألت نبيه ١٠ أسئلة',p=>(p.aiLog||[]).filter(e=>e.kind==='answer').length>=10],
 ];
 function checkBadges(){
   const p=P();p.badges=p.badges||{};const fresh=[];
@@ -1065,7 +1066,7 @@ function paintStudio(){
   const c=$('studio');
   if(stTab===2)return paintGallery(c);
   if(!aiReady()){c.innerHTML=needAI();return}
-  c.innerHTML=`<p>${who==='s'?'اختر من كل صف، ثم اضغط «ارسم!». Claude يرسم بالأشكال والألوان.':'اختر المكوّنات، وأضف تفاصيلك الخاصة. Claude يرسم بالأشكال والخطوط (SVG)، أما مولّدات الصور فتبدأ من الضوضاء كما رأيت في الدرس ٤.'}</p>
+  c.innerHTML=`<p>${who==='s'?'اختر من كل صف، ثم اضغط «ارسم!». نبيه يرسم بالأشكال والألوان.':'اختر المكوّنات، وأضف تفاصيلك الخاصة. نبيه يرسم بالأشكال والخطوط (SVG)، أما مولّدات الصور فتبدأ من الضوضاء كما رأيت في الدرس ٤.'}</p>
    <div class="chips">${DRAW[who].map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
    <div class="g"><b><label for="d-extra">${who==='s'?'شيء إضافي؟ (اختياري)':'تفاصيل إضافية بكلماتك (اختياري)'}</label></b><textarea class="free" id="d-extra" maxlength="160" placeholder="${who==='s'?'مثلاً: يلبس قبعة':'مثلاً: يبتسم ويحمل مظلة صفراء'}"></textarea></div></div>
    <div class="prompt" id="d-prompt"></div>
@@ -1081,11 +1082,11 @@ function paintStudio(){
   const go=async()=>{
     if(drawing||!left())return;drawing=true;const prompt=drawPrompt(c);paintLeftD();
     const box=$('d-box');box.hidden=false;$('d-acts').hidden=true;
-    box.innerHTML=`<div class="wait"><span class="pencil" aria-hidden="true">✏️</span>Claude يرسم الآن…<br><small>قد يأخذ ذلك نصف دقيقة</small></div>`;
+    box.innerHTML=`<div class="wait"><span class="pencil" aria-hidden="true">✏️</span>نبيه يرسم الآن…<br><small>قد يأخذ ذلك نصف دقيقة</small></div>`;
     box.scrollIntoView({behavior:'smooth',block:'center'});
     const j=await aiCall({mode:'draw',prompt});drawing=false;
     if(j.svg){addUse();lastDraw={t:Date.now(),prompt,svg:j.svg};logQ('🎨 '+prompt,'(رسمة)','answer','الاستوديو');
-      box.innerHTML=`<img alt="رسمة Claude: ${esc(prompt)}" src="${svgSrc(j.svg)}">`;$('d-acts').hidden=false;$('d-save').disabled=false;$('d-save').textContent='💾 احفظ في معرضي';SFX.ok()}
+      box.innerHTML=`<img alt="رسمة نبيه: ${esc(prompt)}" src="${svgSrc(j.svg)}">`;$('d-acts').hidden=false;$('d-save').disabled=false;$('d-save').textContent='💾 احفظ في معرضي';SFX.ok()}
     else{if(!j.fail){addUse();logQ('🎨 '+prompt,j.answer||'',j.kind||'busy','الاستوديو')}
       box.innerHTML=`<div class="wait">${esc(j.fail||j.answer||'حدثت مشكلة صغيرة.')}</div>`;SFX.no()}
     paintLeftD();
@@ -1113,7 +1114,7 @@ let cur_story=null,storyBusy=false;
 function openStory(){show('story');route('#'+who+'/story');cur_story=null;paintStoryHome()}
 function paintStoryHome(){
   const c=$('story'),books=P().books||[];
-  c.innerHTML=`${aiReady()?'<button class="btn sun" id="sb-new" style="align-self:flex-start">✏️ قصة جديدة مع Claude</button>':needAI()}
+  c.innerHTML=`${aiReady()?'<button class="btn sun" id="sb-new" style="align-self:flex-start">✏️ قصة جديدة مع نبيه</button>':needAI()}
    <h2>قصصي</h2>
    ${books.length?`<div class="books">${books.map((b,i)=>`<button class="bookbtn" data-i="${i}"><span class="cv" aria-hidden="true">${b.cover?`<img alt="" src="${svgSrc(b.cover)}">`:'📖'}</span><span><b>${esc(b.title||'قصتي')}</b><small class="note">${AR(b.pages.length)} صفحات ، ${new Date(b.t).toLocaleDateString('ar')}</small></span></button>`).join('')}</div>`:'<div class="empty">لا قصص بعد. اكتب أول قصة! 📖</div>'}`;
   if($('sb-new'))$('sb-new').onclick=paintStorySetup;
@@ -1121,7 +1122,7 @@ function paintStoryHome(){
 }
 function paintStorySetup(){
   const c=$('story');
-  c.innerHTML=`<h2>فكرة القصة</h2><p>${who==='s'?'اختر البطل والمكان، وClaude يكتب أول جملة. ثم تتناوبان: جملة منك وجملة من Claude.':'اختر البطل والمكان والمشكلة، أو اكتب فكرتك. ستتناوب مع Claude: جملة منك وجملة منه. أنت المؤلّف!'}</p>
+  c.innerHTML=`<h2>فكرة القصة</h2><p>${who==='s'?'اختر البطل والمكان، ونبيه يكتب أول جملة. ثم تتناوبان: جملة منك وجملة من نبيه.':'اختر البطل والمكان والمشكلة، أو اكتب فكرتك. ستتناوب مع نبيه: جملة منك وجملة منه. أنت المؤلّف!'}</p>
    <div class="chips">${STORY[who].map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
    <div class="g"><b><label for="s-own">أو اكتب فكرتك (اختياري)</label></b><textarea class="free" id="s-own" maxlength="160"></textarea></div></div>
    <div class="row"><button class="btn ghost" id="s-cancel">→ رجوع</button><button class="btn sun" id="s-start">ابدأ القصة ←</button></div><div class="feedback" id="s-msg"></div>`;
@@ -1153,10 +1154,10 @@ async function storyTurn(line,finish){
 }
 function paintStoryWrite(waiting){
   const c=$('story'),st=cur_story,me=S.profiles[who];
-  if(!st.pages.length&&waiting){c.innerHTML=`<div class="canvasbox" style="aspect-ratio:auto;min-height:200px"><div class="wait"><span class="pencil" aria-hidden="true">✏️</span>Claude يكتب أول جملة…</div></div>`;return}
+  if(!st.pages.length&&waiting){c.innerHTML=`<div class="canvasbox" style="aspect-ratio:auto;min-height:200px"><div class="wait"><span class="pencil" aria-hidden="true">✏️</span>نبيه يكتب أول جملة…</div></div>`;return}
   const canEnd=st.pages.length>=4;
-  c.innerHTML=`<p class="note">الفكرة: ${esc(st.setup)}</p><div class="story">${st.pages.map(pg=>`<div class="page ${pg.by}"><small>${pg.by==='child'?me.av+' '+esc(me.name):'🤖 Claude'}</small>${esc(pg.text)}</div>`).join('')}
-   ${waiting?'<div class="page claude wait"><small>🤖 Claude</small>يكتب… <span class="dots3"><span>•</span><span>•</span><span>•</span></span></div>':''}</div>
+  c.innerHTML=`<p class="note">الفكرة: ${esc(st.setup)}</p><div class="story">${st.pages.map(pg=>`<div class="page ${pg.by}"><small>${pg.by==='child'?me.av+' '+esc(me.name):'🤖 نبيه'}</small>${esc(pg.text)}</div>`).join('')}
+   ${waiting?'<div class="page claude wait"><small>🤖 نبيه</small>يكتب… <span class="dots3"><span>•</span><span>•</span><span>•</span></span></div>':''}</div>
    ${waiting?'':`<b>دورك! ماذا يحدث بعد ذلك؟</b>
    ${st.choices.length?`<div class="sugs">${st.choices.map(ch=>`<button type="button">${esc(ch)}</button>`).join('')}</div>`:''}
    <textarea class="free" id="w-line" maxlength="200" placeholder="${who==='s'?'اختر فكرة أو اطلب من بابا أو ماما كتابة جملتك':'اكتب جملتك هنا'}"></textarea>
@@ -1170,22 +1171,22 @@ function paintStoryWrite(waiting){
 }
 function finishedStory(){
   const c=$('story');confetti();SFX.star();
-  c.innerHTML=`<div class="reader"><div style="font-size:3rem">📖✨</div><div class="cover">${esc(cur_story.title||'قصتي')}</div><p>أنهيت قصتك مع Claude! حُفظت في «قصصي».</p></div>
+  c.innerHTML=`<div class="reader"><div style="font-size:3rem">📖✨</div><div class="cover">${esc(cur_story.title||'قصتي')}</div><p>أنهيت قصتك مع نبيه! حُفظت في «قصصي».</p></div>
    <div class="row" style="justify-content:center"><button class="btn sun" id="f-read">اقرأ القصة</button>${aiReady()?'<button class="btn" id="f-cover">🎨 ارسم غلافاً</button>':''}<button class="btn ghost" id="f-home">قصصي</button></div><div class="feedback" id="f-msg"></div>`;
   $('f-read').onclick=()=>readBook(0,0);$('f-home').onclick=paintStoryHome;
   if($('f-cover'))$('f-cover').onclick=()=>drawCover(0,$('f-cover'),$('f-msg'));
 }
 async function drawCover(i,btn,msg){
   if(!left()){msg.textContent='انتهت محاولات اليوم.';return}
-  const b=P().books[i];btn.disabled=true;btn.textContent='✏️ Claude يرسم…';
+  const b=P().books[i];btn.disabled=true;btn.textContent='✏️ نبيه يرسم…';
   const j=await aiCall({mode:'draw',prompt:`غلاف قصة أطفال بعنوان «${b.title}»: ${b.setup}`});
   if(!j.fail)addUse();
   if(j.svg){b.cover=j.svg;save();btn.textContent='✓ رُسم الغلاف';SFX.ok();readBook(i,0)}else{btn.disabled=false;btn.textContent='🎨 ارسم غلافاً';msg.textContent=j.fail||j.answer||'حدثت مشكلة.'}
 }
 function readBook(i,pg){
   const b=P().books[i],c=$('story'),n=b.pages.length,me=S.profiles[who];
-  const body=pg===0?`<div class="reader">${b.cover?`<div class="canvasbox"><img alt="غلاف القصة" src="${svgSrc(b.cover)}"></div>`:'<div style="font-size:4rem">📖</div>'}<div class="cover">${esc(b.title||'قصتي')}</div><p class="note">تأليف ${esc(me.name)} ${me.av} مع <bdi>Claude</bdi> 🤖</p></div>`
-   :`<div class="reader"><p class="note">صفحة ${AR(pg)} من ${AR(n)} ، ${b.pages[pg-1].by==='child'?me.av+' '+esc(me.name):'🤖 Claude'}</p><div class="txt">${esc(b.pages[pg-1].text)}</div>${pg===n?'<div class="cover">النهاية 🌟</div>':''}</div>`;
+  const body=pg===0?`<div class="reader">${b.cover?`<div class="canvasbox"><img alt="غلاف القصة" src="${svgSrc(b.cover)}"></div>`:'<div style="font-size:4rem">📖</div>'}<div class="cover">${esc(b.title||'قصتي')}</div><p class="note">تأليف ${esc(me.name)} ${me.av} مع نبيه 🤖</p></div>`
+   :`<div class="reader"><p class="note">صفحة ${AR(pg)} من ${AR(n)} ، ${b.pages[pg-1].by==='child'?me.av+' '+esc(me.name):'🤖 نبيه'}</p><div class="txt">${esc(b.pages[pg-1].text)}</div>${pg===n?'<div class="cover">النهاية 🌟</div>':''}</div>`;
   c.innerHTML=`${body}<div class="row" style="justify-content:center">${pg>0?'<button class="btn ghost" id="r-prev">→</button>':''}${pg>0&&'speechSynthesis' in window?'<button class="btn ghost" id="r-say">🔊 اقرأ لي</button>':''}${pg<n?'<button class="btn sun" id="r-next">'+(pg===0?'ابدأ القراءة ←':'←')+'</button>':''}</div>
    <div class="row" style="justify-content:center"><button class="btn ghost" id="r-home">قصصي</button>${!b.cover&&aiReady()?'<button class="btn ghost" id="r-cover">🎨 ارسم غلافاً</button>':''}<button class="btn ghost" id="r-del">🗑️ احذف</button></div><div class="feedback" id="r-msg"></div>`;
   if($('r-prev'))$('r-prev').onclick=()=>readBook(i,pg-1);

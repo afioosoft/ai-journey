@@ -1,4 +1,4 @@
-# Helper server for "اسأل Claude"
+# Helper server for "اسأل نبيه"
 
 This small Cloudflare Worker lets the kids ask Claude questions inside the lessons.
 It keeps the Anthropic API key secret, checks the family PIN, sends off-topic
@@ -35,5 +35,5 @@ replace everything with the new `worker.js`, and click Deploy. Your secrets stay
 5. Copy the Worker address, like `https://ai-journey-helper.<name>.workers.dev`.
 
 ### 3. In the app on each device
-ركن الأهل → اسأل Claude → switch it on, paste the address, type the PIN,
+ركن الأهل → اسأل نبيه → switch it on, paste the address, type the PIN,
 choose the daily limit, and press «جرّب الاتصال».
