@@ -6,13 +6,13 @@
 // Settings (Cloudflare dashboard -> Worker -> Settings -> Variables and Secrets):
 //   ANTHROPIC_API_KEY  (secret)  your Anthropic API key
 //   FAMILY_PIN         (secret)  the PIN you type once in the app's parents corner
-//   ANSWER_MODEL       (text, optional) default "claude-opus-5-5"
+//   ANSWER_MODEL       (text, optional) default "claude-sonnet-5-5"
 //   ALLOWED_ORIGINS    (text, optional) default "https://afioosoft.github.io"
 
 import Anthropic from "@anthropic-ai/sdk";
 
 const GATE_MODEL = "claude-haiku-5-5";
-const DEFAULT_MODEL = "claude-opus-5-5";
+const DEFAULT_MODEL = "claude-sonnet-5-5";
 const MAX_QUESTION = 300;
 const WITH_FALLBACK = ["claude-opus-5-5", "claude-opus-5", "claude-fable-5-1", "claude-sonnet-5-5"];
 

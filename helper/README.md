@@ -26,7 +26,7 @@ It stores nothing.
 4. **Settings → Variables and Secrets** → add two **Secret** values:
    - `ANTHROPIC_API_KEY` = the key from step 1
    - `FAMILY_PIN` = a PIN you choose, e.g. 6 digits
-   Optional text values: `ANSWER_MODEL` (default `claude-opus-5-5`; `claude-sonnet-5-5` or `claude-haiku-5-5` cost less).
+   Optional text values: `ANSWER_MODEL` (default `claude-sonnet-5-5`; `claude-haiku-5-5` costs less, `claude-opus-5-5` costs more).
 5. Copy the Worker address, like `https://ai-journey-helper.<name>.workers.dev`.
 
 ### 3. In the app on each device
