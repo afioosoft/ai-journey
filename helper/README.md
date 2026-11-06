@@ -4,7 +4,8 @@ This small Cloudflare Worker lets the kids ask Claude questions inside the lesso
 It keeps the Anthropic API key secret, checks the family PIN, sends off-topic
 questions back with a friendly fixed reply, blocks phone numbers and e-mail
 addresses, and asks Claude for a short, child-safe answer in Arabic.
-It also draws simple pictures (SVG) for the drawing studio and writes stories
+It also draws simple pictures (SVG) for the drawing studio, makes real pictures
+with an image generator (OpenAI gpt-image, optional), and writes stories
 turn by turn with the child, after checking that each idea suits young children.
 It stores nothing.
 
@@ -37,3 +38,24 @@ replace everything with the new `worker.js`, and click Deploy. Your secrets stay
 ### 3. In the app on each device
 ركن الأهل → اسأل نبيه → switch it on, paste the address, type the PIN,
 choose the daily limit, and press «جرّب الاتصال».
+
+## Real pictures in the drawing studio (optional, about 5 minutes)
+
+The drawing studio has two artists: «رسم نبيه» (Claude draws with shapes) and
+«مولّد الصور» (OpenAI gpt-image makes a real-looking picture). Every idea first
+passes the same Claude kid-safety check, then OpenAI's own safety filter.
+
+1. Go to https://platform.openai.com and sign in or sign up.
+2. **Settings → Billing**: add a small credit, for example $5.
+3. **Settings → Limits**: set a monthly budget, for example $5.
+4. **API keys → Create new secret key**, copy it. You only see it once.
+   (OpenAI may ask you to verify your organization before image models work.)
+5. In Cloudflare: your Worker → **Settings → Variables and Secrets** → add a
+   **Secret** `OPENAI_API_KEY` = the key. Deploy.
+6. In the app: ركن الأهل → اسأل نبيه → «جرّب الاتصال» should now say
+   «الصور الحقيقية مفعّلة».
+
+Optional text values: `IMAGE_QUALITY` = `low` (default, roughly 1 US cent a
+picture), `medium` or `high` (sharper, costs several times more);
+`IMAGE_MODEL` (default `gpt-image-2`).
+Each picture counts as one use of the child's daily limit.

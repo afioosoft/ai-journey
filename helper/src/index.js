@@ -1,7 +1,8 @@
 // Helper server for the "رحلة الذكاء الاصطناعي" kids app.
 // It keeps the Anthropic API key secret, checks the family PIN, keeps questions
 // on the lesson topic, and asks Claude for a short, child-safe answer in Arabic.
-// Also draws simple pictures (SVG) and writes stories with the child, turn by turn.
+// Also draws simple pictures (SVG), makes real pictures with an image generator
+// (OpenAI gpt-image, optional), and writes stories with the child, turn by turn.
 // Nothing the children type is stored here.
 //
 // Settings (Cloudflare dashboard -> Worker -> Settings -> Variables and Secrets):
@@ -9,12 +10,16 @@
 //   FAMILY_PIN         (secret)  the PIN you type once in the app's parents corner
 //   ANSWER_MODEL       (text, optional) default "claude-sonnet-5-5"
 //   ALLOWED_ORIGINS    (text, optional) default "https://afioosoft.github.io"
+//   OPENAI_API_KEY     (secret, optional) turns on "real pictures" in the drawing studio
+//   IMAGE_MODEL        (text, optional) default "gpt-image-2"
+//   IMAGE_QUALITY      (text, optional) "low" (default, cheapest), "medium" or "high"
 
 import Anthropic from "@anthropic-ai/sdk";
 
 const GATE_MODEL = "claude-haiku-5-5";
 const DEFAULT_MODEL = "claude-sonnet-5-5";
 const MAX_QUESTION = 300;
+const DEFAULT_IMAGE_MODEL = "gpt-image-2";
 const WITH_FALLBACK = ["claude-opus-5-5", "claude-opus-5", "claude-fable-5-1", "claude-sonnet-5-5"];
 
 const LESSONS = {
@@ -45,6 +50,10 @@ const REPLY = {
   refused:
     "لا أستطيع الإجابة عن هذا السؤال هنا. اسأل بابا أو ماما. 💛",
   busy: "حدثت مشكلة صغيرة. جرّب بعد قليل. 🔧",
+  noImage:
+    "مولّد الصور الحقيقية غير مفعّل بعد. 🖼️ اطلب من بابا أو ماما تفعيله، أو اختر «رسم نبيه».",
+  imageBusy:
+    "مولّد الصور مشغول أو انتهى رصيده الآن. 🔧 جرّب «رسم نبيه»، أو اطلب من بابا أو ماما أن يتحقّقوا.",
   notForKids:
     "هذه الفكرة لا تناسب تطبيقنا. 🌈 جرّب فكرة لطيفة أخرى: حيوان، أو مكان سحري، أو مغامرة ممتعة!",
 };
@@ -229,6 +238,44 @@ async function handleDraw(client, env, body) {
   return [{ svg, kind: "drawing" }, 200];
 }
 
+// A real picture from an image generator (OpenAI gpt-image). The child's own Arabic
+// words go to the generator, wrapped in a gentle children's-book style.
+async function handleImage(client, env, body) {
+  const prompt = String(body.prompt || "").trim().slice(0, MAX_QUESTION);
+  if (!prompt) return [{ error: "empty" }, 400];
+  if (!env.OPENAI_API_KEY) return [{ answer: REPLY.noImage, kind: "no_image" }, 200];
+  if (looksPersonal(prompt)) return [{ answer: REPLY.personal, kind: "personal" }, 200];
+  if (!(await isKidFriendly(client, "draw", prompt))) return [{ answer: REPLY.notForKids, kind: "not_for_kids" }, 200];
+  const quality = ["low", "medium", "high"].includes(env.IMAGE_QUALITY) ? env.IMAGE_QUALITY : "low";
+  const res = await fetch("https://api.openai.com/v1/images/generations", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: env.IMAGE_MODEL || DEFAULT_IMAGE_MODEL,
+      prompt:
+        "A cheerful, gentle, colourful picture for a children's book, suitable for young children. " +
+        "No text, letters or words in the picture. No real people. Draw exactly what this child described (in Arabic): " + prompt,
+      n: 1,
+      size: "1024x1024",
+      quality,
+      output_format: "jpeg",
+      moderation: "auto",
+    }),
+    signal: AbortSignal.timeout(80_000),
+  });
+  const out = await res.json().catch(() => ({}));
+  if (res.status === 401) return [{ error: "image_key" }, 502];
+  if (!res.ok) {
+    const err = out.error || {};
+    if (err.code === "moderation_blocked" || /safety|moderation/i.test(err.message || "")) return [{ answer: REPLY.notForKids, kind: "refused" }, 200];
+    if (res.status === 429 || err.code === "billing_hard_limit_reached" || err.code === "insufficient_quota") return [{ answer: REPLY.imageBusy, kind: "busy", status: res.status }, 200];
+    return [{ answer: REPLY.busy, kind: "busy", status: res.status }, 200];
+  }
+  const b64 = out.data && out.data[0] && out.data[0].b64_json;
+  if (!b64) return [{ answer: REPLY.busy, kind: "busy" }, 200];
+  return [{ image: "data:image/jpeg;base64," + b64, kind: "image" }, 200];
+}
+
 async function handleStory(client, env, body, level) {
   const setup = String(body.setup || "").trim().slice(0, 200);
   const line = String(body.line || "").trim().slice(0, MAX_QUESTION);
@@ -293,18 +340,19 @@ export default {
     try { body = await request.json(); } catch { return json({ error: "bad_request" }, 400, cors); }
 
     if (!samePin(body.pin, env.FAMILY_PIN)) return json({ error: "pin" }, 401, cors);
-    if (body.check) return json({ ok: true }, 200, cors); // parents corner "test connection"
+    if (body.check) return json({ ok: true, image: !!env.OPENAI_API_KEY }, 200, cors); // parents corner "test connection"
 
     const level = body.level === "b" ? "b" : "s";
     const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, baseURL: env.ANTHROPIC_BASE_URL || undefined, maxRetries: 1, timeout: 55_000 });
     try {
-      const mode = body.mode === "draw" ? handleDraw : body.mode === "story" ? handleStory : handleAsk;
+      const mode = body.mode === "draw" ? handleDraw : body.mode === "image" ? handleImage : body.mode === "story" ? handleStory : handleAsk;
       const [out, status] = await mode(client, env, body, level);
       return json(out, status, cors);
     } catch (error) {
       if (error instanceof Anthropic.AuthenticationError) return json({ error: "key" }, 502, cors);
       if (error instanceof Anthropic.RateLimitError) return json({ answer: REPLY.busy, kind: "busy" }, 200, cors);
       if (error instanceof Anthropic.APIError) return json({ answer: REPLY.busy, kind: "busy", status: error.status }, 200, cors);
+      if (error && error.name === "TimeoutError") return json({ answer: REPLY.imageBusy, kind: "busy" }, 200, cors);
       return json({ answer: REPLY.busy, kind: "busy" }, 200, cors);
     }
   },

@@ -211,6 +211,7 @@ nav.steps .btn{flex:0 1 auto;min-width:120px}
 .tabs button[aria-selected="true"]{border-color:var(--sun);background:var(--sun-bg)}
 .canvasbox{width:min(100%,420px);aspect-ratio:1;align-self:center;border-radius:24px;background:var(--line);overflow:hidden;display:grid;place-items:center;position:relative}
 .canvasbox img{width:100%;height:100%;display:block;object-fit:contain;background:#fff}
+.aitag{align-self:center;font-size:.9rem;font-weight:700;color:var(--soft);text-align:center;margin:0}
 .canvasbox .wait{display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:700;color:var(--soft);text-align:center;padding:16px}
 .pencil{font-size:3rem;animation:draw 1.2s ease-in-out infinite}
 @keyframes draw{0%{transform:translate(-20px,8px) rotate(-10deg)}50%{transform:translate(20px,-8px) rotate(10deg)}100%{transform:translate(-20px,8px) rotate(-10deg)}}
@@ -996,7 +997,8 @@ function renderAiCard(){
     if(!/^https:\/\//.test(a.url)){m.textContent='اكتب عنوان الخادم كاملاً، يبدأ بـ https://';return}
     m.textContent='جارٍ الاتصال…';
     try{const r=await fetch(a.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin:a.pin,check:true})});
-      m.textContent=r.ok?'✅ الاتصال يعمل.':r.status===401?'❌ الرقم السري غير صحيح.':'❌ الخادم ردّ بخطأ ('+r.status+').'}
+      const jj=r.ok?await r.json().catch(()=>({})):{};
+      m.textContent=r.ok?'✅ الاتصال يعمل.'+(jj.image?' 🖼️ الصور الحقيقية مفعّلة.':' (الصور الحقيقية غير مفعّلة: أضيفوا مفتاح OpenAI في الخادم لتفعيلها.)'):r.status===401?'❌ الرقم السري غير صحيح.':'❌ الخادم ردّ بخطأ ('+r.status+').'}
     catch(e){m.textContent='❌ لم أستطع الوصول إلى الخادم. تأكّد من العنوان.'}};
 }
 
@@ -1006,6 +1008,9 @@ function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTim
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{try{speechSynthesis.cancel()}catch(e){}openMap()});
 const left=()=>Math.max(0,S.ai.limit-usedToday(who));
 const svgSrc=svg=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+const picSrc=d=>d.img||svgSrc(d.svg);
+// shrink a generated picture so the gallery fits in the device's storage
+function shrinkPic(src,size=512){return new Promise(res=>{const im=new Image();im.onload=()=>{try{const c=document.createElement('canvas');c.width=c.height=size;c.getContext('2d').drawImage(im,0,0,size,size);res(c.toDataURL('image/jpeg',0.82))}catch(e){res(src)}};im.onerror=()=>res(src);im.src=src})}
 function needAI(){return `<div class="empty">🔌 هذه الأداة تحتاج نبيه.<br>اطلب من بابا أو ماما تشغيله في «ركن الأهل».</div>`}
 function noneLeft(){return `<div class="empty">انتهت محاولات اليوم. نلتقي غداً! 🌙</div>`}
 async function aiCall(body){
@@ -1014,6 +1019,7 @@ async function aiCall(body){
     const r=await fetch(S.ai.url,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify(Object.assign({pin:S.ai.pin,level:who},body))});
     clearTimeout(tm);const j=await r.json().catch(()=>({}));
     if(r.status===401)return {fail:'الرقم السري غير صحيح. اطلب من بابا أو ماما ضبطه في ركن الأهل.'};
+    if(j.error==='image_key')return {fail:'مفتاح مولّد الصور غير صحيح. اطلب من بابا أو ماما التحقّق منه في الخادم. 🔑'};
     if(!r.ok)return {fail:'حدثت مشكلة صغيرة. جرّب بعد قليل. 🔧'};
     return j}
   catch(e){return {fail:'لم أستطع الوصول إلى نبيه الآن. جرّب بعد قليل. 🔧'}}
@@ -1075,41 +1081,54 @@ function paintStudio(){
   const c=$('studio');
   if(stTab===2)return paintGallery(c);
   if(!aiReady()){c.innerHTML=needAI();return}
-  c.innerHTML=`<p>${who==='s'?'اختر من كل صف، ثم اضغط «ارسم!». نبيه يرسم بالأشكال والألوان.':'اختر المكوّنات، وأضف تفاصيلك الخاصة. نبيه يرسم بالأشكال والخطوط (SVG)، أما مولّدات الصور فتبدأ من الضوضاء كما رأيت في الدرس ٤.'}</p>
+  const kind=P().drawKind==='image'?'image':'svg';
+  c.innerHTML=`<div class="chips"><div class="g"><b>من يرسم؟</b><div class="opts" id="d-kind"><button data-k="svg" aria-pressed="${kind==='svg'}">🎨 رسم نبيه</button><button data-k="image" aria-pressed="${kind==='image'}">🖼️ مولّد الصور</button></div></div></div>
+   <p>${kind==='svg'
+     ?(who==='s'?'اختر من كل صف، ثم اضغط «ارسم!». نبيه يرسم بالأشكال والألوان.':'اختر المكوّنات، وأضف تفاصيلك الخاصة. نبيه يرسم بالأشكال والخطوط (SVG)، كأنه يرسم بالمسطرة والفرجار.')
+     :(who==='s'?'مولّد الصور يصنع صورة تشبه الحقيقية! يبدأ من نقاط عشوائية مثل الثلج على التلفاز، ثم يرتّبها خطوة خطوة حتى تظهر صورتك.':'مولّد الصور (ذكاء اصطناعي متخصّص بالصور) يبدأ من الضوضاء العشوائية ويزيلها خطوة بعد خطوة، ووصفك يوجّهه، كما رأيت في الدرس ٤. كلما كان وصفك أدقّ، جاءت الصورة أقرب لما في خيالك.')}</p>
    <div class="chips">${DRAW[who].map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
    <div class="g"><b><label for="d-extra">${who==='s'?'شيء إضافي؟ (اختياري)':'تفاصيل إضافية بكلماتك (اختياري)'}</label></b><textarea class="free" id="d-extra" maxlength="160" placeholder="${who==='s'?'مثلاً: يلبس قبعة':'مثلاً: يبتسم ويحمل مظلة صفراء'}"></textarea></div></div>
    <div class="prompt" id="d-prompt"></div>
-   <button class="btn sun" id="d-go" style="align-self:center;font-size:1.25rem">🎨 ارسم!</button>
+   <button class="btn sun" id="d-go" style="align-self:center;font-size:1.25rem">${kind==='svg'?'🎨 ارسم!':'🖼️ اصنع الصورة!'}</button>
    <div class="left" id="d-left"></div>
-   <div class="canvasbox" id="d-box" hidden></div>
+   <div class="canvasbox" id="d-box" hidden></div><p class="aitag" id="d-tag" hidden></p>
    <div class="row" id="d-acts" hidden style="justify-content:center"><button class="btn" id="d-save">💾 احفظ في معرضي</button><button class="btn ghost" id="d-again">🔁 ارسم مرة أخرى</button></div>`;
   const upd=()=>{$('d-prompt').textContent='الوصف: '+drawPrompt(c)};
   c.querySelectorAll('.opts[data-g] button').forEach(b=>b.onclick=()=>{b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));SFX.tap();upd()});
   $('d-extra').oninput=upd;upd();
+  $('d-kind').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(drawing)return;P().drawKind=b.dataset.k;save();SFX.tap();paintStudio()});
   const paintLeftD=()=>{const n=left();$('d-left').textContent=n?`بقي لك ${AR(n)} اليوم`:'انتهت محاولات اليوم. نلتقي غداً! 🌙';$('d-go').disabled=!n||drawing};
   paintLeftD();
   const go=async()=>{
     if(drawing||!left())return;drawing=true;const prompt=drawPrompt(c);paintLeftD();
-    const box=$('d-box');box.hidden=false;$('d-acts').hidden=true;
-    box.innerHTML=`<div class="wait"><span class="pencil" aria-hidden="true">✏️</span>نبيه يرسم الآن…<br><small>قد يأخذ ذلك نصف دقيقة</small></div>`;
+    const box=$('d-box');box.hidden=false;$('d-acts').hidden=true;$('d-tag').hidden=true;
+    box.innerHTML=kind==='svg'?`<div class="wait"><span class="pencil" aria-hidden="true">✏️</span>نبيه يرسم الآن…<br><small>قد يأخذ ذلك نصف دقيقة</small></div>`
+      :`<div class="wait"><span class="pencil" aria-hidden="true">🌫️</span>مولّد الصور يزيل الضوضاء خطوة خطوة…<br><small>قد يأخذ ذلك دقيقة</small></div>`;
     box.scrollIntoView({behavior:'smooth',block:'center'});
-    const j=await aiCall({mode:'draw',prompt});drawing=false;
-    if(j.svg){addUse();lastDraw={t:Date.now(),prompt,svg:j.svg};logQ('🎨 '+prompt,'(رسمة)','answer','الاستوديو');
+    const j=await aiCall({mode:kind==='svg'?'draw':'image',prompt});
+    if(j.image){const img=await shrinkPic(j.image);drawing=false;addUse();lastDraw={t:Date.now(),prompt,img};logQ('🖼️ '+prompt,'(صورة)','answer','الاستوديو');
+      box.innerHTML=`<img alt="صورة من مولّد الصور: ${esc(prompt)}" src="${img}">`;
+      $('d-tag').textContent='🤖 صنعها الذكاء الاصطناعي. ليست صورة حقيقية، ولا يوجد هذا الشيء في الواقع.';$('d-tag').hidden=false;
+      $('d-acts').hidden=false;$('d-save').disabled=false;$('d-save').textContent='💾 احفظ في معرضي';SFX.ok()}
+    else if(j.svg){drawing=false;addUse();lastDraw={t:Date.now(),prompt,svg:j.svg};logQ('🎨 '+prompt,'(رسمة)','answer','الاستوديو');
       box.innerHTML=`<img alt="رسمة نبيه: ${esc(prompt)}" src="${svgSrc(j.svg)}">`;$('d-acts').hidden=false;$('d-save').disabled=false;$('d-save').textContent='💾 احفظ في معرضي';SFX.ok()}
-    else{if(!j.fail){addUse();logQ('🎨 '+prompt,j.answer||'',j.kind||'busy','الاستوديو')}
+    else{drawing=false;if(!j.fail){addUse();logQ('🎨 '+prompt,j.answer||'',j.kind||'busy','الاستوديو')}
       box.innerHTML=`<div class="wait">${esc(j.fail||j.answer||'حدثت مشكلة صغيرة.')}</div>`;SFX.no()}
     paintLeftD();
   };
   $('d-go').onclick=go;$('d-again').onclick=go;
-  $('d-save').onclick=()=>{if(!lastDraw)return;const g=P().gallery||[];g.unshift(lastDraw);P().gallery=g.slice(0,40);lastDraw=null;save();
+  $('d-save').onclick=()=>{if(!lastDraw)return;let g=P().gallery||[];g.unshift(lastDraw);g=g.slice(0,40);
+    // real pictures are bigger: keep at most 20 of them, dropping the oldest
+    let n=0;g=g.filter(d=>!d.img||++n<=20);P().gallery=g;lastDraw=null;
+    try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){g.shift();save();toast('الذاكرة ممتلئة. احذف بعض الرسومات من معرضك ثم جرّب مرة أخرى.');return}
     $('d-save').disabled=true;$('d-save').textContent='✓ حُفظت';$('st-t2').textContent='معرضي ('+AR(P().gallery.length)+')';SFX.star();checkBadges()};
 }
 function paintGallery(c){
   const g=P().gallery||[];
   if(!g.length){c.innerHTML=`<div class="empty">معرضك فارغ. ارسم أول رسمة! 🎨</div>`;return}
-  c.innerHTML=`<div class="grid">${g.map((d,i)=>`<button data-i="${i}" aria-label="${esc(d.prompt)}"><img alt="" src="${svgSrc(d.svg)}"></button>`).join('')}</div>`;
+  c.innerHTML=`<div class="grid">${g.map((d,i)=>`<button data-i="${i}" aria-label="${esc(d.prompt)}"><img alt="" src="${picSrc(d)}"></button>`).join('')}</div>`;
   c.querySelectorAll('.grid button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,d=g[i];
-    c.innerHTML=`<div class="canvasbox"><img alt="${esc(d.prompt)}" src="${svgSrc(d.svg)}"></div><p class="center"><b>الوصف:</b> ${esc(d.prompt)}</p>
+    c.innerHTML=`<div class="canvasbox"><img alt="${esc(d.prompt)}" src="${picSrc(d)}"></div>${d.img?'<p class="aitag">🤖 صنعها مولّد الصور</p>':''}<p class="center"><b>الوصف:</b> ${esc(d.prompt)}</p>
      <p class="note center">${new Date(d.t).toLocaleDateString('ar')}</p>
      <div class="row" style="justify-content:center"><button class="btn ghost" id="g-back">→ كل الرسومات</button><button class="btn ghost" id="g-del">🗑️ احذف</button></div>`;
     $('g-back').onclick=()=>paintGallery(c);
