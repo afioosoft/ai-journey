@@ -59,3 +59,10 @@ Optional text values: `IMAGE_QUALITY` = `low` (default, roughly 1 US cent a
 picture), `medium` or `high` (sharper, costs several times more);
 `IMAGE_MODEL` (default `gpt-image-2`).
 Each picture counts as one use of the child's daily limit.
+
+The same OpenAI key also powers the 🎤 microphone in the drawing studio: the
+child says what they want, the voice is turned into Arabic words
+(`gpt-4o-mini-transcribe`, a fraction of a cent per use; change with
+`LISTEN_MODEL`), and the words appear in the description box. The recording is
+sent once and not stored. The browser asks for microphone permission the
+first time.

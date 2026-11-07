@@ -211,6 +211,8 @@ nav.steps .btn{flex:0 1 auto;min-width:120px}
 .tabs button[aria-selected="true"]{border-color:var(--sun);background:var(--sun-bg)}
 .canvasbox{width:min(100%,420px);aspect-ratio:1;align-self:center;border-radius:24px;background:var(--line);overflow:hidden;display:grid;place-items:center;position:relative}
 .canvasbox img{width:100%;height:100%;display:block;object-fit:contain;background:#fff}
+.micbtn.rec{background:var(--wrong);color:#fff;animation:recpulse 1s ease-in-out infinite}
+@keyframes recpulse{50%{transform:scale(1.05)}}
 .aitag{align-self:center;font-size:.9rem;font-weight:700;color:var(--soft);text-align:center;margin:0}
 .canvasbox .wait{display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:700;color:var(--soft);text-align:center;padding:16px}
 .pencil{font-size:3rem;animation:draw 1.2s ease-in-out infinite}
@@ -1090,14 +1092,37 @@ function renderBadges(){
 /* ---------- drawing studio ---------- */
 const DRAW={s:[{l:'ماذا أرسم؟',o:['قطة','ديناصور','صاروخ','بيت','سمكة','فيل']},{l:'بأي لون؟',o:['برتقالي','بنفسجي','أزرق','بألوان قوس قزح']},{l:'أين؟',o:['على القمر','في الغابة','تحت البحر','في الحديقة']}],
  b:[{l:'الشيء',o:['قطة','ديناصور','صاروخ','بيت أحلام','روبوت','تنين صغير']},{l:'الألوان',o:['برتقالي','بنفسجي','أخضر','بألوان قوس قزح']},{l:'الخلفية',o:['على القمر','في غابة سحرية','تحت البحر','في الصحراء وقت الغروب']},{l:'الأسلوب',o:['كرتون','رسم أطفال بسيط','ألوان مائية','مكعبات']}]};
-let stTab=1,lastDraw=null,drawing=false;
+let stTab=1,lastDraw=null,drawing=false,voiceText='';
 function drawPrompt(card){
   const v=[...card.querySelectorAll('.opts[data-g]')].map(g=>g.querySelector('[aria-pressed="true"]').textContent);
   const extra=(card.querySelector('#d-extra')?.value||'').trim();
+  if(card.dataset.voice==='1'&&extra)return extra;
   const [th,col,pl,sty]=v;
   return `${th} ${col.startsWith('بألوان')?col:'لونه '+col} ${pl}${sty?'، بأسلوب '+sty:''}${extra?'، '+extra:''}`;
 }
-function openStudio(){show('studio');route('#'+who+'/studio');stTab=1;paintStudio()}
+/* microphone: record a few seconds, the helper server turns the voice into Arabic words */
+const canMic=()=>!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.MediaRecorder);
+function wireMic(btn,msg,onText){
+  const label=btn.textContent;let rec=null,stopT=null;
+  const reset=()=>{btn.classList.remove('rec');btn.textContent=label;btn.disabled=false};
+  btn.onclick=async()=>{
+    if(rec){rec.stop();return}
+    let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:true})}
+    catch(e){msg.textContent='لم أستطع استعمال الميكروفون. اطلب من بابا أو ماما السماح به في إعدادات المتصفح. 🎤';return}
+    const mime=['audio/webm','audio/mp4','audio/ogg'].find(t=>MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t))||'';
+    const chunks=[];rec=mime?new MediaRecorder(stream,{mimeType:mime}):new MediaRecorder(stream);
+    rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+    rec.onstop=async()=>{clearTimeout(stopT);stream.getTracks().forEach(t=>t.stop());const type=rec.mimeType||mime||'audio/webm';rec=null;
+      btn.classList.remove('rec');btn.disabled=true;btn.textContent='✍️ أكتب كلامك…';msg.textContent='';
+      const blob=new Blob(chunks,{type});
+      if(blob.size<800){reset();msg.textContent='لم أسمع شيئاً. اضغط الميكروفون وتكلّم. 🎤';return}
+      const audio=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(String(fr.result).split(',')[1]||'');fr.readAsDataURL(blob)});
+      const j=await aiCall({mode:'listen',audio,mime:type});reset();
+      if(j.text){SFX.ok();onText(j.text)}else{SFX.no();msg.textContent=j.fail||j.answer||'حدثت مشكلة صغيرة.'}};
+    rec.start();btn.classList.add('rec');btn.textContent='⏹️ أنهيت الكلام';msg.textContent='أسمعك… 👂';SFX.tap();
+    stopT=setTimeout(()=>{if(rec)rec.stop()},15000)};
+}
+function openStudio(){show('studio');route('#'+who+'/studio');stTab=1;voiceText='';paintStudio()}
 $('st-t1').onclick=()=>{stTab=1;paintStudio()};$('st-t2').onclick=()=>{stTab=2;paintStudio()};
 function paintStudio(){
   $('st-t1').setAttribute('aria-selected',stTab===1);$('st-t2').setAttribute('aria-selected',stTab===2);
@@ -1110,6 +1135,7 @@ function paintStudio(){
    <p>${kind==='svg'
      ?(who==='s'?'اختر من كل صف، ثم اضغط «ارسم!». نبيه يرسم بالأشكال والألوان.':'اختر المكوّنات، وأضف تفاصيلك الخاصة. نبيه يرسم بالأشكال والخطوط (SVG)، كأنه يرسم بالمسطرة والفرجار.')
      :(who==='s'?'مولّد الصور يصنع صورة تشبه الحقيقية! يبدأ من نقاط عشوائية مثل الثلج على التلفاز، ثم يرتّبها خطوة خطوة حتى تظهر صورتك.':'مولّد الصور (ذكاء اصطناعي متخصّص بالصور) يبدأ من الضوضاء العشوائية ويزيلها خطوة بعد خطوة، ووصفك يوجّهه، كما رأيت في الدرس ٤. كلما كان وصفك أدقّ، جاءت الصورة أقرب لما في خيالك.')}</p>
+   ${canMic()?`<div class="row" style="justify-content:center;align-items:center"><button class="btn micbtn" id="d-mic">🎤 ${who==='s'?'قل ما تريد':'قل وصفك بصوتك'}</button><span class="note" id="d-micmsg" aria-live="polite"></span></div>`:''}
    <div class="chips">${DRAW[who].map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
    <div class="g"><b><label for="d-extra">${who==='s'?'شيء إضافي؟ (اختياري)':'تفاصيل إضافية بكلماتك (اختياري)'}</label></b><textarea class="free" id="d-extra" maxlength="160" placeholder="${who==='s'?'مثلاً: يلبس قبعة':'مثلاً: يبتسم ويحمل مظلة صفراء'}"></textarea></div></div>
    <div class="prompt" id="d-prompt"></div>
@@ -1118,8 +1144,11 @@ function paintStudio(){
    <div class="canvasbox" id="d-box" hidden></div><p class="aitag" id="d-tag" hidden></p>
    <div class="row" id="d-acts" hidden style="justify-content:center"><button class="btn" id="d-save">💾 احفظ في معرضي</button><button class="btn ghost" id="d-again">🔁 ارسم مرة أخرى</button></div>`;
   const upd=()=>{$('d-prompt').textContent='الوصف: '+drawPrompt(c)};
-  c.querySelectorAll('.opts[data-g] button').forEach(b=>b.onclick=()=>{b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));SFX.tap();upd()});
-  $('d-extra').oninput=upd;upd();
+  c.dataset.voice=voiceText?'1':'';if(voiceText)$('d-extra').value=voiceText;
+  c.querySelectorAll('.opts[data-g] button').forEach(b=>b.onclick=()=>{b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));if(c.dataset.voice==='1'){$('d-extra').value='';$('d-micmsg').textContent=''}c.dataset.voice='';voiceText='';SFX.tap();upd()});
+  $('d-extra').oninput=()=>{if(c.dataset.voice==='1')voiceText=$('d-extra').value;upd()};upd();
+  if($('d-mic'))wireMic($('d-mic'),$('d-micmsg'),text=>{$('d-extra').value=voiceText=text;c.dataset.voice='1';upd();
+    $('d-micmsg').textContent=who==='s'?'سمعتك! 👂 اضغط «ارسم».':'سمعتك! 👂 الوصف الآن من كلامك. يمكنك تعديله، أو اضغط أي اختيار لتعود إلى الاختيارات.'});
   $('d-kind').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(drawing)return;P().drawKind=b.dataset.k;save();SFX.tap();paintStudio()});
   const paintLeftD=()=>{const n=left();$('d-left').textContent=n?`بقي لك ${AR(n)} اليوم`:'انتهت محاولات اليوم. نلتقي غداً! 🌙';$('d-go').disabled=!n||drawing};
   paintLeftD();

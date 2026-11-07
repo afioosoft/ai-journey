@@ -13,6 +13,7 @@
 //   OPENAI_API_KEY     (secret, optional) turns on "real pictures" in the drawing studio
 //   IMAGE_MODEL        (text, optional) default "gpt-image-2"
 //   IMAGE_QUALITY      (text, optional) "low" (default, cheapest), "medium" or "high"
+//   LISTEN_MODEL       (text, optional) speech-to-text model, default "gpt-4o-mini-transcribe"
 
 import Anthropic from "@anthropic-ai/sdk";
 
@@ -20,6 +21,8 @@ const GATE_MODEL = "claude-haiku-5-5";
 const DEFAULT_MODEL = "claude-sonnet-5-5";
 const MAX_QUESTION = 300;
 const DEFAULT_IMAGE_MODEL = "gpt-image-2";
+const DEFAULT_LISTEN_MODEL = "gpt-4o-mini-transcribe";
+const MAX_AUDIO_BYTES = 1_500_000; // about 30 seconds of compressed speech
 const WITH_FALLBACK = ["claude-opus-5-5", "claude-opus-5", "claude-fable-5-1", "claude-sonnet-5-5"];
 
 const LESSONS = {
@@ -54,6 +57,10 @@ const REPLY = {
     "مولّد الصور الحقيقية غير مفعّل بعد. 🖼️ اطلب من بابا أو ماما تفعيله، أو اختر «رسم نبيه».",
   imageBusy:
     "مولّد الصور مشغول أو انتهى رصيده الآن. 🔧 جرّب «رسم نبيه»، أو اطلب من بابا أو ماما أن يتحقّقوا.",
+  noListen:
+    "الميكروفون يحتاج مفتاح OpenAI في الخادم. 🎤 اطلب من بابا أو ماما تفعيله، أو اكتب وصفك.",
+  tooLong: "كلامك طويل! 🎤 قل وصفك في جملة أو جملتين فقط.",
+  notHeard: "لم أسمعك جيداً. 🎤 اقترب من الجهاز وتكلّم بوضوح، ثم جرّب مرة أخرى.",
   notForKids:
     "هذه الفكرة لا تناسب تطبيقنا. 🌈 جرّب فكرة لطيفة أخرى: حيوان، أو مكان سحري، أو مغامرة ممتعة!",
 };
@@ -276,6 +283,37 @@ async function handleImage(client, env, body) {
   return [{ image: "data:image/jpeg;base64," + b64, kind: "image" }, 200];
 }
 
+// Speech to text for the microphone button: the child's voice becomes words in the
+// description box. Nothing is drawn here; the drawing request is checked as usual.
+async function handleListen(client, env, body) {
+  if (!env.OPENAI_API_KEY) return [{ answer: REPLY.noListen, kind: "no_image" }, 200];
+  const b64 = String(body.audio || "");
+  const mime = /^audio\/(webm|mp4|mpeg|ogg|wav|x-m4a|aac)/.test(body.mime || "") ? String(body.mime).split(";")[0] : "audio/webm";
+  let bytes;
+  try { bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)); } catch { return [{ error: "bad_request" }, 400]; }
+  if (!bytes.length) return [{ error: "empty" }, 400];
+  if (bytes.length > MAX_AUDIO_BYTES) return [{ answer: REPLY.tooLong, kind: "too_long" }, 200];
+  const ext = { "audio/mp4": "m4a", "audio/x-m4a": "m4a", "audio/aac": "m4a", "audio/mpeg": "mp3", "audio/ogg": "ogg", "audio/wav": "wav" }[mime] || "webm";
+  const form = new FormData();
+  form.append("file", new Blob([bytes], { type: mime }), "speech." + ext);
+  form.append("model", env.LISTEN_MODEL || DEFAULT_LISTEN_MODEL);
+  form.append("language", "ar");
+  form.append("prompt", "طفل يصف رسمة يريدها باللغة العربية.");
+  const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}` },
+    body: form,
+    signal: AbortSignal.timeout(40_000),
+  });
+  const out = await res.json().catch(() => ({}));
+  if (res.status === 401) return [{ error: "image_key" }, 502];
+  if (!res.ok) return [{ answer: REPLY.imageBusy, kind: "busy", status: res.status }, 200];
+  const text = String(out.text || "").replace(/\s+/g, " ").trim().slice(0, 160);
+  if (!text) return [{ answer: REPLY.notHeard, kind: "not_heard" }, 200];
+  if (looksPersonal(text)) return [{ answer: REPLY.personal, kind: "personal" }, 200];
+  return [{ text, kind: "heard" }, 200];
+}
+
 async function handleStory(client, env, body, level) {
   const setup = String(body.setup || "").trim().slice(0, 200);
   const line = String(body.line || "").trim().slice(0, MAX_QUESTION);
@@ -345,7 +383,7 @@ export default {
     const level = body.level === "b" ? "b" : "s";
     const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, baseURL: env.ANTHROPIC_BASE_URL || undefined, maxRetries: 1, timeout: 55_000 });
     try {
-      const mode = body.mode === "draw" ? handleDraw : body.mode === "image" ? handleImage : body.mode === "story" ? handleStory : handleAsk;
+      const mode = body.mode === "draw" ? handleDraw : body.mode === "image" ? handleImage : body.mode === "listen" ? handleListen : body.mode === "story" ? handleStory : handleAsk;
       const [out, status] = await mode(client, env, body, level);
       return json(out, status, cors);
     } catch (error) {
