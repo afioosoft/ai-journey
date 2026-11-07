@@ -298,6 +298,7 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
       <div class="brand grow"><span id="logo-slot"></span>رحلة الذكاء الاصطناعي</div>
       <button class="iconbtn" id="snd" aria-label="الصوت"></button>
     </div>
+    <div class="center" id="hero-logo" style="margin:6px 0 -4px"></div>
     <h1 class="center">مَن يتعلّم اليوم؟</h1>
     <div class="kids" id="kids"></div>
     <div class="banner" id="install" hidden><p>ثبّت التطبيق على هذا الجهاز ليفتح من الشاشة الرئيسية بدون إنترنت.</p><button class="btn sun" id="install-btn">ثبّت التطبيق</button></div>
@@ -441,7 +442,8 @@ const COPY_S='اطلب من أبيك أو أمك أن يرسل هذا إلى ن�
 const COPY_B='أرسل السؤال إلى نبيه، واقرأ الجواب.';
 
 const STAR=(on,cls='')=>`<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" fill="${on?'var(--sun)':'none'}" stroke="${on?'var(--sun)':'var(--soft)'}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
-const LOGO=s=>`<svg width="${s}" height="${s}" viewBox="0 0 72 72" aria-hidden="true"><line x1="36" y1="6" x2="36" y2="16" stroke="var(--ink)" stroke-width="3"/><circle cx="36" cy="6" r="4" fill="var(--sun)"/><rect x="12" y="16" width="48" height="38" rx="14" fill="var(--plain)"/><circle cx="27" cy="34" r="6" fill="var(--card)"/><circle cx="45" cy="34" r="6" fill="var(--card)"/><circle cx="28" cy="35" r="3" fill="var(--ink)"/><circle cx="46" cy="35" r="3" fill="var(--ink)"/><path d="M28 45 Q36 51 44 45" stroke="var(--card)" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="22" y="56" width="28" height="12" rx="5" fill="var(--learn)"/></svg>`;
+let LOGO_N=0;
+const LOGO=s=>{const k='lg'+(++LOGO_N);return `<svg width="${s}" height="${s}" viewBox="0 0 512 512" aria-hidden="true" style="flex:none;border-radius:22%;box-shadow:0 2px 8px rgba(22,32,107,.25)"><defs><radialGradient id="${k}a" cx="30%" cy="20%" r="95%"><stop offset="0" stop-color="#7B5CFF"/><stop offset=".55" stop-color="#3B3FD8"/><stop offset="1" stop-color="#16206B"/></radialGradient><linearGradient id="${k}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF"/><stop offset="1" stop-color="#D8E4FF"/></linearGradient><linearGradient id="${k}c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B2550"/><stop offset="1" stop-color="#0B1030"/></linearGradient><linearGradient id="${k}d" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFB547"/><stop offset=".5" stop-color="#FF6FB5"/><stop offset="1" stop-color="#4FE3FF"/></linearGradient><radialGradient id="${k}e"><stop offset="0" stop-color="#FFE37A" stop-opacity=".9"/><stop offset="1" stop-color="#FFE37A" stop-opacity="0"/></radialGradient></defs><rect width="512" height="512" fill="url(#${k}a)"/><g fill="#FFF" opacity=".7"><circle cx="70" cy="90" r="4"/><circle cx="440" cy="70" r="4"/><circle cx="50" cy="330" r="4"/><circle cx="400" cy="460" r="4"/></g><path d="M410 140 l6 16 16 6 -16 6 -6 16 -6-16 -16-6 16-6z" fill="#FFE37A"/><path d="M92 200 l4 10 10 4 -10 4 -4 10 -4-10 -10-4 10-4z" fill="#4FE3FF"/><path transform="translate(0 52)" d="M86 300 A175 52 -14 0 1 426 220" fill="none" stroke="url(#${k}d)" stroke-width="16" stroke-linecap="round" opacity=".55"/><circle cx="256" cy="96" r="44" fill="url(#${k}e)"/><rect x="249" y="104" width="14" height="44" rx="7" fill="#C9D6F5"/><path d="M256 70 l9 18 20 3 -14 14 3 20 -18-9 -18 9 3-20 -14-14 20-3z" fill="#FFC93C" stroke="#FF9F1C" stroke-width="4" stroke-linejoin="round"/><rect x="104" y="230" width="40" height="84" rx="18" fill="#FF6FB5"/><rect x="368" y="230" width="40" height="84" rx="18" fill="#FF6FB5"/><rect x="126" y="150" width="260" height="230" rx="84" fill="#0A0F3A" opacity=".3"/><rect x="126" y="140" width="260" height="230" rx="84" fill="url(#${k}b)"/><rect x="156" y="178" width="200" height="140" rx="58" fill="url(#${k}c)"/><path d="M178 206 Q196 188 230 186" stroke="#FFF" stroke-opacity=".25" stroke-width="8" fill="none" stroke-linecap="round"/><g stroke="#4FE3FF" fill="none" stroke-linecap="round"><g stroke-width="15"><path d="M192 252 Q211 226 230 252"/><path d="M282 252 Q301 226 320 252"/></g><path d="M232 280 Q256 302 280 280" stroke-width="11"/></g><ellipse cx="182" cy="290" rx="16" ry="9" fill="#FF6FB5" opacity=".8"/><ellipse cx="330" cy="290" rx="16" ry="9" fill="#FF6FB5" opacity=".8"/><path transform="translate(0 52)" d="M426 220 A175 52 -14 0 1 86 300" fill="none" stroke="url(#${k}d)" stroke-width="16" stroke-linecap="round"/><circle cx="420" cy="304" r="15" fill="#FFC93C" stroke="#FFF" stroke-width="4"/></svg>`};
 
 /* ---------- picture examples (made with an AI image generator) ---------- */
 const SUBJ={
@@ -683,7 +685,7 @@ function show(view){
 function route(h){try{history.replaceState(null,'',h)}catch(e){}}
 
 function renderHome(){
-  $('logo-slot').innerHTML=LOGO(44);paintSound();
+  $('logo-slot').innerHTML=LOGO(44);$('hero-logo')&&($('hero-logo').innerHTML=LOGO(110));paintSound();
   $('kids').innerHTML=['s','b'].map(k=>{const p=S.profiles[k],n=starCount(k);
     return `<button class="kid ${k}" data-k="${k}"><div class="av" aria-hidden="true">${p.av}</div><div class="nm">${esc(p.name)}</div>
     <div class="lvl">${k==='s'?'المستوى الصغير':'المستوى الكبير'}</div>
