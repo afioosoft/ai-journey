@@ -724,6 +724,30 @@ function openLesson(i){
 }
 $('l-close').onclick=openMap;
 
+// «ارسمها»: make the picture prompt into a real picture with the image generator, right in the lesson
+function picBtn(){return aiReady()?`<div class="row" data-picrow hidden><button class="btn sun" data-pic>🖼️ ارسمها</button><span class="note" data-picleft></span></div><div class="canvasbox" data-picbox hidden></div><p class="aitag" data-pictag hidden></p><div class="row" data-picacts hidden style="justify-content:center"><button class="btn" data-picsave>💾 احفظ في معرضي</button></div>`:''}
+function wirePic(card,getText){
+  const b=card.querySelector('[data-pic]');if(!b)return;
+  const row=card.querySelector('[data-picrow]'),box=card.querySelector('[data-picbox]'),tag=card.querySelector('[data-pictag]'),acts=card.querySelector('[data-picacts]'),sv=card.querySelector('[data-picsave]'),lf=card.querySelector('[data-picleft]');
+  let busy=false,last=null;
+  const canDraw=()=>{const t=getText();return t.startsWith('ارسم')&&!t.includes('[')};row.hidden=!canDraw();
+  const paint=()=>{const n=left();lf.textContent=n?`بقي لك ${AR(n)} اليوم`:'انتهت محاولات اليوم 🌙';b.disabled=busy||!n};paint();
+  b.onclick=async()=>{if(busy||!left())return;busy=true;paint();const prompt=getText().trim().slice(0,300);
+    box.hidden=false;tag.hidden=true;acts.hidden=true;
+    box.innerHTML=`<div class="wait"><span class="pencil" aria-hidden="true">🌫️</span>مولّد الصور يزيل الضوضاء خطوة خطوة…<br><small>قد يأخذ ذلك دقيقة</small></div>`;
+    box.scrollIntoView({behavior:'smooth',block:'center'});
+    const j=await aiCall({mode:'image',prompt});
+    if(j.image){const img=await shrinkPic(j.image);addUse();last={t:Date.now(),prompt,img};logQ('🖼️ '+prompt,'(صورة)','answer');
+      box.innerHTML=`<img alt="صورة من مولّد الصور: ${esc(prompt)}" src="${img}">`;
+      tag.textContent='🤖 صنعها الذكاء الاصطناعي من وصفك. ليست صورة حقيقية.';tag.hidden=false;acts.hidden=false;sv.disabled=false;sv.textContent='💾 احفظ في معرضي';SFX.ok()}
+    else{if(!j.fail){addUse();logQ('🖼️ '+prompt,j.answer||'',j.kind||'busy')}
+      box.innerHTML=`<div class="wait">${esc(j.fail||j.answer||'حدثت مشكلة صغيرة.')}</div>`;SFX.no()}
+    busy=false;paint()};
+  sv.onclick=()=>{if(!last)return;let g=P().gallery||[];g.unshift(last);g=g.slice(0,40);let n=0;g=g.filter(d=>!d.img||++n<=20);P().gallery=g;last=null;
+    try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){g.shift();save();toast('الذاكرة ممتلئة. احذف بعض الرسومات من معرضك ثم جرّب مرة أخرى.');return}
+    sv.disabled=true;sv.textContent='✓ حُفظت';SFX.star();checkBadges()};
+  return ()=>{row.hidden=!canDraw()};
+}
 function copyBtn(){return `<div class="row"><button class="btn" data-copy>انسخ السؤال</button><span class="note" data-copied aria-live="polite"></span></div>`}
 function wireCopy(card,getEl){
   const b=card.querySelector('[data-copy]');if(!b)return;const msg=card.querySelector('[data-copied]');
@@ -770,9 +794,9 @@ const R={
    return `<h2>${s.title}</h2><p>${T(s.intro)}</p><div class="chips">
    ${gs.map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
    ${s.free?`<div class="g"><b><label for="free">${s.free}</label></b><input type="text" id="free" value="${esc(s.freeEx||'')}"></div>`:''}
-   </div><div class="prompt" id="bout"></div>${copyBtn()}`},
+   </div><div class="prompt" id="bout"></div>${copyBtn()}${picBtn()}`},
  claude:s=>`<h2>${s.title||'جرّب مع نبيه'}</h2><p>${T(s.intro)||(who==='s'?COPY_S:COPY_B)}</p>
-   <div class="prompt" id="cprompt">${T(s.prompt)}</div>${aiReady()?`<div class="row"><button class="btn sun" data-tonabih>🤖 أرسله إلى نبيه</button></div>`:''}${copyBtn()}<div class="ask">${T(s.ask)}</div>
+   <div class="prompt" id="cprompt">${T(s.prompt)}</div>${picBtn()}${aiReady()?`<div class="row"><button class="btn sun" data-tonabih>🤖 أرسله إلى نبيه</button></div>`:''}${copyBtn()}<div class="ask">${T(s.ask)}</div>
    <p class="note">هذا النشاط يحتاج إنترنت وشخصاً كبيراً بجانبك.</p>`,
  list:s=>`<h2>${s.title}</h2><p>ضع علامة على كل خطوة عندما تنتهي منها.</p><ol class="todo">
    ${T(s.items).map((it,i)=>`<li><input type="checkbox" id="todo${i}" data-i="${i}"><label for="todo${i}">${AR(i+1)}. ${it}</label></li>`).join('')}</ol>`,
@@ -849,8 +873,8 @@ const W={
  builder:(s,card)=>{const out=card.querySelector('#bout'),free=card.querySelector('#free');
   const upd=()=>{const v=[...card.querySelectorAll('.opts[data-g]')].map(g=>g.querySelector('[aria-pressed="true"]').textContent);out.textContent=s.tpl(v,free?free.value.trim():'',who)};
   card.querySelectorAll('.opts[data-g] button').forEach(b=>b.onclick=()=>{b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));SFX.tap();upd()});
-  if(free)free.oninput=upd;upd();wireCopy(card,()=>out)},
- claude:(s,card)=>{wireCopy(card,()=>card.querySelector('#cprompt'));const t=card.querySelector('[data-tonabih]');if(t)t.onclick=()=>{openAsk();ask(card.querySelector('#cprompt').textContent.trim().slice(0,300))}},
+  if(free)free.oninput=upd;upd();wireCopy(card,()=>out);wirePic(card,()=>out.textContent)},
+ claude:(s,card)=>{wireCopy(card,()=>card.querySelector('#cprompt'));wirePic(card,()=>card.querySelector('#cprompt').textContent);const t=card.querySelector('[data-tonabih]');if(t)t.onclick=()=>{openAsk();ask(card.querySelector('#cprompt').textContent.trim().slice(0,300))}},
  list:(s,card)=>{const saved=P().todo[LESSONS[L].n]||[];
   card.querySelectorAll('ol.todo input').forEach(c=>{const i=+c.dataset.i;c.checked=!!saved[i];c.closest('li').classList.toggle('done',c.checked);
    c.onchange=()=>{c.closest('li').classList.toggle('done',c.checked);const a=P().todo[LESSONS[L].n]||[];a[i]=c.checked;P().todo[LESSONS[L].n]=a;save();if(c.checked)SFX.ok()}})},
