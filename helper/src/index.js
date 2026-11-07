@@ -25,12 +25,12 @@ const WITH_FALLBACK = ["claude-opus-5-5", "claude-opus-5", "claude-fable-5-1", "
 const LESSONS = {
   1: "ما هو الذكاء الاصطناعي، والفرق بين الآلة العادية والآلة التي تتعلّم",
   2: "كيف يتعلّم الذكاء الاصطناعي من الأمثلة الكثيرة بدلاً من القواعد",
-  3: "كيف يفهم Claude الكلمات ويكتب النصوص والقصص بتوقّع الكلمة التالية",
+  3: "كيف يفهم نبيه الكلمات ويكتب النصوص والقصص بتوقّع الكلمة التالية",
   4: "كيف ترسم مولّدات الصور: من الضوضاء العشوائية إلى صورة يوجّهها الوصف",
   5: "كتابة وصف جيد للصور: الشيء والألوان والأسلوب والخلفية",
-  6: "مشروع إبداعي مع الذكاء الاصطناعي: الطفل صاحب الفكرة وClaude يساعد",
+  6: "مشروع إبداعي مع الذكاء الاصطناعي: الطفل صاحب الفكرة ونبيه يساعد",
   7: "الأمان: الذكاء الاصطناعي قد يخطئ، لا نشارك معلوماتنا الشخصية، ليست كل صورة حقيقية، نستعمله للمساعدة لا للغش",
-  8: "المشروع النهائي: التخطيط والصنع مع Claude وشرح كيف صُنع",
+  8: "المشروع النهائي: التخطيط والصنع مع نبيه وشرح كيف صُنع",
   9: "كيف يرى الحاسوب الصور: البكسلات والأرقام والرؤية الحاسوبية",
   10: "كيف يسمع الحاسوب الكلام ويحوّله إلى كلمات، وكيف يتكلّم بصوت (المساعد الصوتي)",
   11: "كيف يكتشف الذكاء الاصطناعي الأنماط ويتوقّع ما سيأتي، مثل اقتراح الأغاني والفيديوهات والطقس",
@@ -135,7 +135,7 @@ function systemPrompt(level, lesson) {
     : "The child is 6 years old and a parent reads the answer aloud. Use very simple Arabic words, at most 3 very short sentences, and one comparison with something at home.";
   return [
     "You are a friendly, patient AI teacher inside a children's learning app called «رحلة الذكاء الاصطناعي».",
-    "In this app your name is «نبيه», a friendly robot helper. If a child asks who you are, say you are نبيه, a computer program (an AI helper made with Claude by Anthropic), not a person.",
+    "In this app your name is «نبيه», a friendly robot helper. If a child asks who you are, say you are نبيه, a computer program (an AI helper), not a person. Always call yourself نبيه; there is no need to name the company or the AI model behind you.",
     `Today's lesson: ${LESSONS[lesson] || "الذكاء الاصطناعي"}.`,
     age,
     "Always answer in Arabic, right to left, with no Markdown, no lists, no links and no headings. You may use one emoji.",
