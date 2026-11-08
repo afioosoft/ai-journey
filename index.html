@@ -286,6 +286,14 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
 .dword.off{opacity:.55}
 .tools{grid-template-columns:repeat(4,1fr)}
 @media (max-width:560px){.tools{grid-template-columns:repeat(2,1fr)}}
+body{transition:background-color .25s}@media (prefers-reduced-motion:reduce){body{transition:none}}
+.bgsheet{align-items:center;padding:16px}
+.bgsheet .panel{height:auto;max-height:90dvh;border-radius:28px;width:min(460px,100%);padding:18px 18px 22px;gap:14px;overflow:auto}
+.swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.swatch{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px;font-weight:700;font-size:.95rem;min-height:48px}
+.swatch .c{width:min(68px,17vw);aspect-ratio:1;border-radius:50%;border:5px solid var(--ring);display:grid;place-items:center;font-size:1.6rem;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+.swatch[aria-pressed="true"] .c{outline:4px solid var(--ink);outline-offset:3px}
+.swatch[aria-pressed="true"] b{text-decoration:underline;text-underline-offset:5px}
 </style>
 </head>
 <body>
@@ -313,6 +321,7 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
       <button class="iconbtn" id="map-home" aria-label="تغيير اللاعب">→</button>
       <div class="who-chip grow" id="map-who"></div>
       <div class="total" id="map-total"></div>
+      <button class="iconbtn" id="map-bg" aria-label="لون الخلفية" aria-haspopup="dialog">🎨</button>
     </div>
     <div class="tools" id="tools"></div>
     <h1>خريطة الرحلة</h1>
@@ -426,6 +435,12 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
       <textarea id="ask-q" rows="1" maxlength="300" placeholder="اكتب سؤالك عن الدرس…" aria-label="سؤالك"></textarea>
       <button class="btn" id="ask-send" type="submit">أرسل</button>
     </form>
+  </div>
+</div>
+<div class="sheet bgsheet" id="bgpick" hidden role="dialog" aria-modal="true" aria-labelledby="bg-title">
+  <div class="panel">
+    <div class="head"><b id="bg-title">اختر لون الخلفية 🎨</b><button class="iconbtn" id="bg-close" aria-label="إغلاق">✕</button></div>
+    <div class="swatches" id="swatches"></div>
   </div>
 </div>
 <div class="confetti" id="confetti" aria-hidden="true"></div>
@@ -669,6 +684,34 @@ function confetti(){
   setTimeout(()=>c.innerHTML='',3800);
 }
 
+/* ---------- background colours (chosen by each child, saved on this device) ---------- */
+const BGS=[
+ {k:'sky',  n:'سماوي',  bg:'#EEF4FA',line:'#D6E0EE',dk:'#111A2C',ring:'#4C8FE0'},
+ {k:'mint', n:'نعناعي', bg:'#E2F5EA',line:'#C3E5D0',dk:'#0F2A1F',ring:'#2FB673'},
+ {k:'lemon',n:'ليموني', bg:'#FFF5CF',line:'#EDDC9E',dk:'#2A2410',ring:'#F2C21B'},
+ {k:'orange',n:'برتقالي',bg:'#FFE7D4',line:'#F1CBAC',dk:'#2F1C10',ring:'#F5873A'},
+ {k:'pink', n:'وردي',   bg:'#FDE4EF',line:'#F0C3D7',dk:'#2F1424',ring:'#EC5C9C'},
+ {k:'purple',n:'بنفسجي',bg:'#EDE6FB',line:'#D4C8F0',dk:'#1E1735',ring:'#8B62E0'},
+ {k:'teal', n:'فيروزي', bg:'#DAF4F3',line:'#B4E1DF',dk:'#0D2A2C',ring:'#1FB3AE'},
+ {k:'sand', n:'رملي',   bg:'#F5ECDD',line:'#E2D2B6',dk:'#2A2218',ring:'#C29A5B'}];
+(()=>{let c='';for(const b of BGS.slice(1)){const a=`[data-bg="${b.k}"]`;
+  c+=`:root${a}{--bg:${b.bg};--line:${b.line}}\n@media (prefers-color-scheme: dark){:root:not([data-theme="light"])${a}{--bg:${b.dk};--line:#2C3B5C}}\n:root[data-theme="dark"]${a}{--bg:${b.dk};--line:#2C3B5C}\n`}
+  const st=document.createElement('style');st.textContent=c;document.head.appendChild(st)})();
+const bgOf=k=>BGS.some(b=>b.k===k)?k:'sky';
+function applyBg(view){const k=bgOf(view==='home'?S.bg:S.profiles[who].bg);
+  if(k==='sky')document.documentElement.removeAttribute('data-bg');else document.documentElement.setAttribute('data-bg',k)}
+function openBg(){
+  const curK=bgOf(S.profiles[who].bg);
+  $('swatches').innerHTML=BGS.map(b=>`<button class="swatch" data-k="${b.k}" aria-pressed="${b.k===curK}" style="--ring:${b.ring}"><span class="c" style="background:${b.bg}" aria-hidden="true">${b.k===curK?'✔️':''}</span><b>${b.n}</b></button>`).join('');
+  $('swatches').querySelectorAll('.swatch').forEach(x=>x.onclick=()=>{S.profiles[who].bg=x.dataset.k;S.bg=x.dataset.k;save();applyBg('map');SFX.tap();openBg()});
+  $('bgpick').hidden=false;
+}
+const closeBg=()=>{$('bgpick').hidden=true};
+$('map-bg').onclick=()=>{SFX.tap();openBg();setTimeout(()=>$('bg-close').focus(),0)};
+$('bg-close').onclick=()=>{closeBg();$('map-bg').focus()};
+$('bgpick').onclick=e=>{if(e.target===$('bgpick'))closeBg()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('bgpick').hidden)closeBg()});
+
 /* ---------- views ---------- */
 let who='s', L=0, cur=0;
 const T=x=>x==null?'':(typeof x==='string'||Array.isArray(x)||typeof x==='function')?x:(x[who]??x.s);
@@ -679,6 +722,7 @@ function show(view){
   ['home','map','lesson','parents','cert','studio','story','daily','dict'].forEach(v=>$('v-'+v).hidden=v!==view);
   if(typeof closeAsk==='function')closeAsk();
   document.body.className='lv-'+who;
+  closeBg();applyBg(view);
   if(view!=='lesson'&&view!=='cert')$('confetti').innerHTML='';
   window.scrollTo(0,0);
 }
