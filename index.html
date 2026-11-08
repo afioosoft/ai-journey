@@ -260,6 +260,12 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
 .rp-tile span{font-size:1.6rem}.rp-tile b{font-family:var(--display);font-size:1.5rem}.rp-tile small{opacity:.75;font-size:.85rem}
 .rp-pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;margin-top:6px}.rp-pics img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;background:var(--line)}
 .rp-week{align-items:center}.rp-tips ul{margin:6px 0 0;padding-inline-start:20px}#p-report .tag{display:inline-block;margin:2px;background:var(--line);color:var(--ink);font-size:.9rem;padding:2px 8px}
+#map-new h2{margin:6px 0}.mo-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:8px}
+.mo-item{border:0;background:var(--card);border-radius:22px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 5px 0 var(--line);text-align:center;position:relative;color:var(--ink);font:inherit}
+.mo-item .ic{font-size:2.2rem}.mo-item small{opacity:.75}.mo-item.new{box-shadow:0 5px 0 var(--sun);outline:3px solid var(--sun)}.mo-item.soon{opacity:.7;background:var(--plain-bg)}
+.mo-badge{position:absolute;top:-10px;inset-inline-start:10px;background:var(--sun);color:#1D2B4A;font-weight:800;font-size:.8rem;border-radius:999px;padding:2px 10px;animation:moPulse 1.6s ease-in-out infinite}
+@keyframes moPulse{50%{transform:scale(1.08)}}@media (prefers-reduced-motion:reduce){.mo-badge{animation:none}}
+.mo-page{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}.mo-ic{font-size:4rem}
 .usetbl{width:100%;border-collapse:collapse;margin:8px 0}.usetbl th,.usetbl td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:start}.usetbl td:not(:first-child),.usetbl th:not(:first-child){text-align:center}
 /* certificate */
 .cert{background:var(--card);border:6px double var(--sun);border-radius:28px;padding:clamp(22px,6vw,44px);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
@@ -350,6 +356,7 @@ ul.recap li::before{content:'✓ ';color:var(--learn)}
       <button class="iconbtn" id="map-bg" aria-label="لون الخلفية" aria-haspopup="dialog">🎨</button>
     </div>
     <div class="tools" id="tools"></div>
+    <div id="map-new"></div>
     <h1>خريطة الرحلة</h1>
     <div class="path" id="path"></div>
     <div id="map-cert"></div>
@@ -404,6 +411,12 @@ ul.recap li::before{content:'✓ ';color:var(--learn)}
   </div>
 </section>
 
+<section id="v-month" hidden>
+  <div class="wrap">
+    <div class="topbar"><button class="iconbtn" data-back aria-label="رجوع">→</button><h1 class="grow" id="mo-title">جديد هذا الشهر</h1></div>
+    <section class="card" id="month"></section>
+  </div>
+</section>
 <section id="v-daily" hidden>
   <div class="wrap">
     <div class="topbar"><button class="iconbtn" data-back aria-label="رجوع">→</button><h1 class="grow">تحدّي اليوم 🏅</h1></div>
@@ -755,7 +768,7 @@ const P=()=>S.prog[who];
 const starCount=k=>Object.keys(S.prog[k].stars).length;
 
 function show(view){
-  ['home','map','lesson','parents','cert','studio','story','daily','dict'].forEach(v=>$('v-'+v).hidden=v!==view);
+  ['home','map','lesson','parents','cert','studio','story','daily','dict','month'].forEach(v=>$('v-'+v).hidden=v!==view);
   if(typeof closeAsk==='function')closeAsk();
   document.body.className='lv-'+who;
   closeBg();applyBg(view);
@@ -793,6 +806,7 @@ function openMap(){
   $('path').querySelectorAll('[data-cert]').forEach(b=>b.onclick=()=>openCert(+b.dataset.cert));
   $('map-cert').innerHTML=UNITS.every(u=>unitDone(u))?`<div class="banner"><p><b>🎓 أنهيت كل الدروس الستة عشر!</b> هذه شهادتك الكبرى.</p><button class="btn sun" data-cert="all">الشهادة الكبرى 🏆</button></div>`:'';
   $('map-cert').querySelectorAll('[data-cert]').forEach(b=>b.onclick=()=>openCert('all'));
+  paintMonthly();
   renderTools();renderBadges();checkBadges();
   show('map');route('#'+who);
 }
@@ -1368,10 +1382,10 @@ function paintStoryHome(){
   if($('sb-new'))$('sb-new').onclick=paintStorySetup;
   c.querySelectorAll('.bookbtn').forEach(b=>b.onclick=()=>readBook(+b.dataset.i,0));
 }
-function paintStorySetup(){
-  const c=$('story');
+function paintStorySetup(theme){
+  const c=$('story');const groups=(theme&&theme.chips&&Array.isArray(theme.chips[lv()])&&theme.chips[lv()].length)?theme.chips[lv()].map(g=>({l:esc(g.l),o:(g.o||[]).map(esc)})):STORY[lv()];
   c.innerHTML=`<h2>فكرة القصة</h2><p>${lv()==='s'?'اختر البطل والمكان، ونبيه يكتب أول جملة. ثم تتناوبان: جملة منك وجملة من نبيه.':'اختر البطل والمكان والمشكلة، أو اكتب فكرتك. ستتناوب مع نبيه: جملة منك وجملة منه. أنت المؤلّف!'}</p>
-   <div class="chips">${STORY[lv()].map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
+   ${theme?`<p class="banner">${esc(theme.icon||'')} موضوع الشهر: ${esc(theme.title)}</p>`:''}<div class="chips">${groups.map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
    <div class="g"><b><label for="s-own">أو اكتب فكرتك (اختياري)</label></b><textarea class="free" id="s-own" maxlength="160"></textarea></div></div>
    <div class="row"><button class="btn ghost" id="s-cancel">→ رجوع</button><button class="btn sun" id="s-start">ابدأ القصة ←</button></div><div class="feedback" id="s-msg"></div>`;
   c.querySelectorAll('.opts[data-g] button').forEach(b=>b.onclick=()=>{b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));SFX.tap()});
@@ -1380,7 +1394,7 @@ function paintStorySetup(){
     if(!left()){$('s-msg').textContent='انتهت محاولات اليوم. نلتقي غداً! 🌙';return}
     const v=[...c.querySelectorAll('.opts[data-g]')].map(g=>g.querySelector('[aria-pressed="true"]').textContent);
     const own=$('s-own').value.trim();
-    const setup=own||(lv()==='s'?`${v[0]} ${v[1]}`:`${v[0]} في ${v[1]}، ${v[2]}`);
+    const setup=own||(v.length<3?`${v[0]} ${v[1]}`:`${v[0]} في ${v[1]}، ${v[2]}`);
     cur_story={t:Date.now(),setup,title:'',pages:[],choices:[]};
     await storyTurn('');
   };
@@ -2058,6 +2072,66 @@ function openDict(){show('dict');route('#'+who+'/dict');
   c.insertAdjacentHTML('afterbegin',`<div class="streak">📚 ${AR(n)} من ${AR(LESSONS.length)} كلمة</div>`);
 }
 
+/* ---------- monthly new content ----------
+   Items live in monthly.json on the website. A copy is built in, so the app works offline;
+   when online, the app checks the website for new items (a plain file, no tracking). */
+const MONTHLY_BUILTIN=[{"id":"2026-11-translate","month":"2026-11","kind":"mini","icon":"🌍","title":"كيف يترجم الذكاء الاصطناعي؟","sub":{"s":"درس صغير عن الكلمات واللغات","b":"درس قصير: الترجمة الآلية"},"pages":[{"ic":"🗣️","s":"في العالم لغات كثيرة: العربية والإنجليزية والصينية وغيرها. أحياناً نريد أن نفهم شخصاً لا يتكلّم لغتنا.","b":"في العالم أكثر من سبعة آلاف لغة. الترجمة الآلية تساعدنا على فهم نص أو كلام بلغة لا نعرفها، في ثوانٍ."},{"ic":"📚","s":"الذكاء الاصطناعي قرأ جُملاً كثيرة جداً مكتوبة بلغتين معاً، مثل كتاب فيه كل صفحة بالعربية وبجانبها بالإنجليزية.","b":"تعلّم نموذج الترجمة من ملايين الجمل المترجمة سابقاً: الجملة بالعربية وبجانبها نفس الجملة بالإنجليزية. هذه هي بيانات التدريب، كما في الدرس ٢."},{"ic":"🧩","s":"لا يترجم كلمة كلمة. يفهم الجملة كلها أولاً، ثم يكتبها باللغة الأخرى. مثل أن تحكي قصة سمعتها بكلماتك أنت.","b":"النموذج لا يترجم كلمة بكلمة، لأن ترتيب الكلمات يختلف بين اللغات. يحوّل الجملة كلها إلى أرقام تمثّل معناها، ثم يتوقّع الكلمات المناسبة باللغة الأخرى واحدة بعد واحدة، كما في الدرس ٣."},{"ic":"🤔","s":"أحياناً يخطئ! «عين الماء» ليست عيناً نرى بها. لذلك نسأل شخصاً يعرف اللغة عن الأشياء المهمّة.","b":"قد يخطئ في الأمثال والكلمات التي لها أكثر من معنى، مثل «عين» (للنظر أو للماء). لذلك نراجع الترجمة المهمّة مع شخص يعرف اللغتين."}],"qs":{"s":[["من أين تعلّم الذكاء الاصطناعي الترجمة؟",[["من جُمل كثيرة مكتوبة بلغتين",1],["من الأحلام",0],["عرفها وحده بلا أمثلة",0]],"تعلّم من أمثلة كثيرة: الجملة نفسها بلغتين."],["هل يترجم كلمة كلمة؟",[["لا، يفهم الجملة كلها أولاً",1],["نعم، كلمة كلمة دائماً",0]],"يفهم الجملة كلها، ثم يكتبها باللغة الأخرى."],["هل يمكن أن يخطئ في الترجمة؟",[["نعم، أحياناً",1],["لا، لا يخطئ أبداً",0]],"كل ذكاء اصطناعي قد يخطئ، لذلك نتأكّد من الأشياء المهمّة."]],"b":[["ماذا تسمّى الجمل المترجمة التي تعلّم منها النموذج؟",[["بيانات التدريب",1],["كلمة السر",0],["البكسلات",0]],"الأمثلة التي يتعلّم منها النموذج اسمها بيانات التدريب."],["لماذا لا تنجح الترجمة كلمة بكلمة؟",[["لأن ترتيب الكلمات والمعاني يختلف بين اللغات",1],["لأن الحاسوب بطيء",0],["لأن اللغات كلها متشابهة",0]],"كل لغة لها ترتيبها وتعابيرها، فيجب فهم معنى الجملة كلها."],["ترجمت رسالة مهمّة لجدّتك. ماذا تفعل؟",[["أطلب من شخص يعرف اللغتين أن يراجعها",1],["أرسلها فوراً بلا مراجعة",0],["أترجمها كلمة كلمة بالقاموس",0]],"الترجمة الآلية مفيدة، لكنها قد تخطئ، فنراجع المهمّ منها."]]},"home":{"s":"اختر مع بابا أو ماما ثلاث كلمات، وتعلّما كيف تُقال بلغة أخرى. أيّها أصعب؟","b":"اكتب مثلاً عربياً (مثل «الوقت كالسيف») واطلب من أحد أفراد العائلة ترجمته حرفياً إلى لغة أخرى. هل بقي المعنى نفسه؟ لماذا؟"}},{"id":"2026-12-whoami","month":"2026-12","kind":"challenge","icon":"🕵️","title":"تحدّي «من أنا؟»: أدوات ذكية حولنا","sub":{"s":"خمّن الأداة الذكية","b":"تحدّي الألغاز: ٥ أدوات ذكية"},"intro":{"s":"سأصف لك أداة ذكية. خمّن من هي! 🔍","b":"خمسة ألغاز عن أدوات ذكاء اصطناعي نستعملها كل يوم. اقرأ الوصف وخمّن الأداة."},"qs":{"s":[["أسمع صوتك وأجيبك: «كم الساعة؟» من أنا؟",[["المساعد الصوتي",1],["الثلاجة العادية",0]],"المساعد الصوتي يحوّل كلامك إلى كلمات ثم يجيب."],["أعرف الطريق وأقول لبابا: «انعطف يميناً». من أنا؟",[["تطبيق الخرائط",1],["المصباح",0]],"تطبيق الخرائط يتوقّع أسرع طريق."],["أفتح هاتف ماما عندما أرى وجهها. من أنا؟",[["التعرّف على الوجه",1],["الساعة المنبّهة",0]],"الحاسوب يرى الوجه كأرقام ويقارنها."],["أقترح عليك رسوماً متحرّكة تحبّها. من أنا؟",[["نظام الاقتراحات",1],["الكرسي",0]],"يتعلّم مما شاهدته من قبل، كما في درس الأنماط."],["أكتب ما تقوله بالكلمات. من أنا؟",[["تحويل الكلام إلى نص",1],["القلم الملوّن",0]],"مثل الميكروفون في استوديو الرسم!"]],"b":[["أصنّف الرسائل المزعجة وأبعدها عن صندوق بريدك. من أنا؟",[["مرشّح البريد المزعج",1],["الطابعة",0],["الآلة الحاسبة",0]],"تعلّم من أمثلة رسائل مزعجة وأخرى عادية."],["أتوقّع زحمة الطريق قبل أن تصل إليها. من أنا؟",[["تطبيق الخرائط والملاحة",1],["إشارة المرور العادية",0],["عدّاد السيارة",0]],"يجمع بيانات حركة السيارات ويكتشف الأنماط."],["أساعد الطبيب على قراءة صور الأشعة. من أنا؟",[["نموذج رؤية حاسوبية طبي",1],["ميزان الحرارة",0],["سمّاعة الطبيب",0]],"رأى آلاف الصور ويساعد الطبيب، والطبيب هو من يقرّر."],["أترجم لافتة في بلد آخر عندما توجّه الكاميرا إليها. من أنا؟",[["الترجمة بالكاميرا",1],["المنظار",0],["البوصلة",0]],"يقرأ الحروف في الصورة ثم يترجمها، مثل الدرس الصغير في الشهر الماضي."],["أعرف أن قطّتك قطّة في صورك وأجمع صورها معاً. من أنا؟",[["تصنيف الصور",1],["ألبوم ورقي",0],["المِمحاة",0]],"تعلّم من صور كثيرة لقطط، كما في الدرس ٢."]]}},{"id":"2027-01-space","month":"2027-01","kind":"story","icon":"🚀","title":"رحلة إلى الفضاء","sub":{"s":"اكتب قصة في الفضاء","b":"موضوع قصص جديد: الفضاء"},"intro":{"s":"هذا الشهر نكتب قصصاً في الفضاء! اختر البطل والمكان، ونبيه يبدأ القصة. 🌙","b":"موضوع قصص هذا الشهر: مغامرة في الفضاء. اختر البطل والمكان والمشكلة، أو اكتب فكرتك الخاصة، ثم تناوب مع نبيه."},"chips":{"s":[{"l":"البطل","o":["روبوت صغير","قطة رائدة فضاء","بنت تحب النجوم","ولد يحب الكواكب"]},{"l":"المكان","o":["على القمر","في سفينة فضاء","قرب نجمة لامعة","على كوكب أحمر"]}],"b":[{"l":"البطل","o":["روبوت مستكشف","طفلة عالمة فلك","طفل مهندس صواريخ","قطة تطير"]},{"l":"المكان","o":["محطة فضاء","كوكب من الحلوى","حلقات زحل","الجانب المظلم من القمر"]},{"l":"المشكلة","o":["تعطّل جهاز الإرسال","ضاع نجم صغير","يحتاج الفريق إلى ماء","وصلت رسالة غريبة"]}]}}];
+const MONTHLY_URL=location.hostname==='afioosoft.github.io'?'monthly.json':'https://afioosoft.github.io/ai-journey/monthly.json';
+let MONTHLY=MONTHLY_BUILTIN;
+try{const c=JSON.parse(localStorage.getItem('ai-journey-monthly')||'null');if(Array.isArray(c)&&c.length>=MONTHLY.length)MONTHLY=c}catch(e){}
+const okItem=x=>x&&typeof x.id==='string'&&/^\d{4}-\d{2}$/.test(x.month)&&['mini','challenge','story'].includes(x.kind)&&typeof x.title==='string';
+async function refreshMonthly(){if(!navigator.onLine)return;
+  try{const r=await fetch(MONTHLY_URL,{cache:'no-store'});if(!r.ok)return;const j=await r.json();const items=(j.items||[]).filter(okItem);
+    if(items.length){MONTHLY=items;try{localStorage.setItem('ai-journey-monthly',JSON.stringify(items))}catch(e){}if(!$('v-map').hidden)paintMonthly()}}catch(e){}}
+const monthNow=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+const MONTHS_AR=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const monthAr=m=>MONTHS_AR[+m.slice(5,7)-1]+' '+AR(m.slice(0,4));
+const KIND_AR={mini:'درس صغير',challenge:'تحدٍّ',story:'موضوع قصص'};
+function paintMonthly(){
+  const now=monthNow(),open=MONTHLY.filter(x=>okItem(x)&&x.month<=now).sort((a,b)=>b.month.localeCompare(a.month)),next=MONTHLY.filter(x=>okItem(x)&&x.month>now).sort((a,b)=>a.month.localeCompare(b.month))[0];
+  const seen=P().seenM||{},done=P().doneM||{};
+  if(!open.length&&!next){$('map-new').innerHTML='';return}
+  const card=x=>{const isNew=x.month===now&&!seen[x.id];return `<button class="mo-item${isNew?' new':''}" data-mo="${esc(x.id)}">
+    ${isNew?'<span class="mo-badge">✨ جديد هذا الشهر</span>':''}<span class="ic" aria-hidden="true">${esc(x.icon||'✨')}</span>
+    <b>${esc(x.title)}</b><small>${esc(KIND_AR[x.kind])} ، ${esc(monthAr(x.month))}${done[x.id]?' ، ✅':''}</small></button>`};
+  $('map-new').innerHTML=`<h2>🗓️ جديد كل شهر</h2><div class="mo-list">${open.slice(0,3).map(card).join('')}
+    ${next?`<div class="mo-item soon" aria-disabled="true"><span class="ic" aria-hidden="true">🔒</span><b>مفاجأة ${esc(monthAr(next.month))}</b><small>${esc(KIND_AR[next.kind])} جديد قريباً</small></div>`:''}</div>`;
+  $('map-new').querySelectorAll('[data-mo]').forEach(b=>b.onclick=()=>{SFX.tap();openMonthly(b.dataset.mo)});
+}
+function openMonthly(id){
+  const x=MONTHLY.find(i=>i.id===id);if(!x||!okItem(x)||x.month>monthNow())return openMap();
+  P().seenM=Object.assign(P().seenM||{},{[id]:Date.now()});save();
+  show('month');route('#'+who+'/m/'+id);$('mo-title').textContent=x.title;
+  const c=$('month'),L2=lv(),pick=o=>o==null?'':typeof o==='string'?o:(o[L2]??o.s??'');
+  const finish=()=>{P().doneM=Object.assign(P().doneM||{},{[id]:Date.now()});save()};
+  const quiz=(qs,end)=>{let i=0,first=0;const run=()=>{if(i>=qs.length)return end(first,qs.length);
+    const [q,ch,why]=qs[i];let miss=false,noted=false;
+    c.innerHTML=`<div class="qnum">${esc(x.icon||'')} السؤال ${AR(i+1)} من ${AR(qs.length)}</div><p class="lead">${esc(q)}</p>
+     <div class="choices">${shuffle(easyChoices(ch)).map(([a,ok])=>`<button data-ok="${+ok===1?1:0}">${esc(a)}</button>`).join('')}</div><div class="feedback" aria-live="polite"></div>`;
+    c.querySelectorAll('.choices button').forEach(b=>b.onclick=()=>{const fb=c.querySelector('.feedback');if(!noted){noted=true;noteAnswer(b.dataset.ok==='1','quiz')}
+      if(b.dataset.ok==='1'){if(!miss)first++;b.classList.add('right');SFX.ok();c.querySelectorAll('.choices button').forEach(z=>z.disabled=true);
+        fb.innerHTML=`<div class="why"><b style="color:var(--learn)">صحيح! 👏</b> ${esc(why||'')}</div>`;
+        const nb=document.createElement('button');nb.className='btn sun';nb.style.alignSelf='flex-start';nb.textContent=i<qs.length-1?'السؤال التالي ←':'النتيجة ←';nb.onclick=()=>{i++;run()};c.appendChild(nb)}
+      else{miss=true;b.classList.add('no');b.disabled=true;fb.style.color='var(--wrong)';fb.textContent='فكّر مرة أخرى.';SFX.no()}})};run()};
+  const doneScreen=(first,n,extra)=>{finish();confetti();SFX.star();
+    c.innerHTML=`<div class="reader"><div style="font-size:3.5rem">${esc(x.icon||'🌟')}</div><div class="streak">أحسنت! أنهيت «${esc(x.title)}»</div>
+      ${n?`<p class="score center">من أول محاولة: ${AR(first)} من ${AR(n)}</p>`:''}${extra||''}</div><div class="row" style="justify-content:center"><button class="btn" id="mo-map">إلى الخريطة</button></div>`;
+    $('mo-map').onclick=openMap};
+  const qs=(x.qs&&(x.qs[L2]||x.qs.s))||[];
+  if(x.kind==='mini'){const pages=x.pages||[];let pg=0;
+    const page=()=>{if(pg>=pages.length)return quiz(qs,(f,n)=>doneScreen(f,n,x.home?`<div class="why"><b>🏠 نشاط في البيت:</b> ${esc(pick(x.home))}</div>`:''));
+      const t=pick(pages[pg]);
+      c.innerHTML=`<div class="qnum">${esc(KIND_AR.mini)} ، صفحة ${AR(pg+1)} من ${AR(pages.length)}</div><div class="mo-page"><div class="mo-ic" aria-hidden="true">${esc(pages[pg].ic||x.icon||'')}</div><p class="lead">${esc(t)}</p></div>
+       <div class="row"><button class="btn ghost" id="mo-say">🔊 اقرأ لي</button><button class="btn sun" id="mo-next">${pg<pages.length-1?'التالي ←':'إلى الأسئلة ←'}</button></div>`;
+      $('mo-say').onclick=()=>speak(t);$('mo-next').onclick=()=>{try{speechSynthesis.cancel()}catch(e){}pg++;page()}};page()}
+  else if(x.kind==='challenge'){c.innerHTML=`<div class="reader"><div style="font-size:3.5rem">${esc(x.icon||'🏅')}</div><p class="lead">${esc(pick(x.intro))}</p></div><div class="row" style="justify-content:center"><button class="btn sun" id="mo-go">ابدأ التحدّي ←</button></div>`;
+    $('mo-go').onclick=()=>quiz(qs,(f,n)=>doneScreen(f,n))}
+  else{c.innerHTML=`<div class="reader"><div style="font-size:3.5rem">${esc(x.icon||'📖')}</div><p class="lead">${esc(pick(x.intro))}</p></div>
+     <div class="row" style="justify-content:center">${aiReady()?'<button class="btn sun" id="mo-go">✏️ اكتب قصة بهذا الموضوع</button>':needAI()}</div>`;
+    if($('mo-go'))$('mo-go').onclick=()=>{finish();show('story');route('#'+who+'/story');cur_story=null;paintStorySetup(x)}}
+}
+refreshMonthly();
+
 /* ---------- certificate ---------- */
 const CERT_TXT={1:'في هذه الرحلة: كيف يتعلّم الذكاء الاصطناعي من الأمثلة، وكيف يكتب ويرسم، وكيف نستعمله بأمان وصدق.',
   2:'في هذه الرحلة: كيف يرى الحاسوب ويسمع، وكيف يكتشف الأنماط، وبرمجة روبوت، وتدريب نموذج خاص، ولماذا يجب أن يكون الذكاء الاصطناعي عادلاً.',
@@ -2128,6 +2202,7 @@ if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostn
 (function start(){
   const h=location.hash.slice(1);const m=/^([a-z0-9]{1,8})(?:\/(\d+))?$/.exec(h);
   if(h==='parents')return openParents();
+  const mo=/^([a-z0-9]{1,8})\/m\/([\w-]{1,40})$/.exec(h);if(mo&&S.profiles[mo[1]]){who=mo[1];return openMonthly(mo[2])}
   const t=/^([a-z0-9]{1,8})\/(studio|story|daily|dict)$/.exec(h);if(t&&S.profiles[t[1]]){who=t[1];return ({studio:openStudio,story:openStory,daily:openDaily,dict:openDict})[t[2]]()}
   if(m&&S.profiles[m[1]]){who=m[1];if(m[2]){const i=LESSONS.findIndex(l=>l.n===+m[2]);if(i>=0)return openLesson(i)}return openMap()}
   renderHome();
