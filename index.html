@@ -63,6 +63,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(-
 
 /* home */
 .kids{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.kids.many{grid-template-columns:repeat(2,1fr);gap:12px}.kids.many .kid{padding:14px 10px}.kids.many .kid .av{width:76px;height:76px;font-size:2.8rem}.kids.many .kid .nm{font-size:1.35rem}.kids.many .starrow svg{width:12px;height:12px}
 .kid{border:0;background:var(--card);border-radius:28px;padding:22px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 6px 0 var(--line);text-align:center;transition:transform .15s}
 .kid:active{transform:translateY(4px);box-shadow:0 2px 0 var(--line)}
 .kid .av{width:110px;height:110px;border-radius:50%;display:grid;place-items:center;font-size:4rem;line-height:1}
@@ -263,7 +264,8 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
 /* certificate */
 .cert{background:var(--card);border:6px double var(--sun);border-radius:28px;padding:clamp(22px,6vw,44px);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
 .cert .big{font-family:var(--display);font-weight:800;font-size:clamp(2rem,8vw,3rem);line-height:1.2}
-@media print{body{background:#fff}.noprint{display:none!important}.cert{box-shadow:none}}
+.cert.grand{border-color:#7B5CFF}.cert-sign{justify-content:space-around;width:100%;text-align:center;font-weight:700}
+@media print{@page{size:A4 landscape;margin:10mm}body{background:#fff}.noprint{display:none!important}.cert{box-shadow:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .uhead{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:22px;padding:12px 16px;box-shadow:0 5px 0 var(--line);margin-top:14px}
@@ -443,7 +445,8 @@ ul.recap li::before{content:'✓ ';color:var(--learn)}
     <div class="topbar noprint">
       <button class="iconbtn" id="c-back" aria-label="رجوع">→</button>
       <div class="grow"></div>
-      <button class="btn ghost" onclick="window.print()">اطبع الشهادة</button>
+      <button class="btn" id="c-save">💾 احفظ صورة</button>
+      <button class="btn ghost" onclick="window.print()">🖨️ اطبع أو PDF</button>
     </div>
     <div class="cert" id="cert"></div>
   </div>
@@ -681,7 +684,14 @@ const DEF={profiles:{s:{name:'أنا الصغير',av:'🦁'},b:{name:'أنا ا
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))||null}catch(e){S=null}
 if(!S||!S.prog){S=JSON.parse(JSON.stringify(DEF))}
-for(const k of ['s','b']){S.profiles[k]=Object.assign({},DEF.profiles[k],S.profiles[k]||{});S.prog[k]=Object.assign({stars:{},at:{},todo:{}},S.prog[k]||{})}
+/* profiles: up to 4 children; each has its own level (s = about 6 years, b = about 10 years).
+   The first two keep their old ids "s" and "b", so existing progress carries over. */
+const MAX_KIDS=4;
+if(!Array.isArray(S.order)||!S.order.length)S.order=['s','b'];
+S.order=S.order.filter((k,i,a)=>/^[a-z0-9]{1,8}$/.test(k)&&a.indexOf(k)===i).slice(0,MAX_KIDS);
+for(const k of S.order){S.profiles[k]=Object.assign({},DEF.profiles[k]||{name:'طفل',av:'🐼'},S.profiles[k]||{});
+  if(S.profiles[k].lv!=='s'&&S.profiles[k].lv!=='b')S.profiles[k].lv=k==='b'?'b':'s';
+  S.prog[k]=Object.assign({stars:{},at:{},todo:{}},S.prog[k]||{})}
 S.ai=Object.assign({on:false,url:'',pin:'',limit:15},S.ai||{});
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 
@@ -738,8 +748,9 @@ $('bgpick').onclick=e=>{if(e.target===$('bgpick'))closeBg()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('bgpick').hidden)closeBg()});
 
 /* ---------- views ---------- */
-let who='s', L=0, cur=0;
-const T=x=>x==null?'':(typeof x==='string'||Array.isArray(x)||typeof x==='function')?x:(x[who]??x.s);
+let who=S.order[0], L=0, cur=0;
+const lv=()=>(S.profiles[who]&&S.profiles[who].lv)||'s';
+const T=x=>x==null?'':(typeof x==='string'||Array.isArray(x)||typeof x==='function')?x:(x[lv()]??x.s);
 const P=()=>S.prog[who];
 const starCount=k=>Object.keys(S.prog[k].stars).length;
 
@@ -755,9 +766,10 @@ function route(h){try{history.replaceState(null,'',h)}catch(e){}}
 
 function renderHome(){
   $('logo-slot').innerHTML=LOGO(44);$('hero-logo')&&($('hero-logo').innerHTML=LOGO(110));paintSound();
-  $('kids').innerHTML=['s','b'].map(k=>{const p=S.profiles[k],n=starCount(k);
-    return `<button class="kid ${k}" data-k="${k}"><div class="av" aria-hidden="true">${p.av}</div><div class="nm">${esc(p.name)}</div>
-    <div class="lvl">${k==='s'?'المستوى الصغير':'المستوى الكبير'}</div>
+  $('kids').classList.toggle('many',KIDS().length>2);
+  $('kids').innerHTML=KIDS().map(k=>{const p=S.profiles[k],n=starCount(k);
+    return `<button class="kid ${p.lv}" data-k="${k}"><div class="av" aria-hidden="true">${p.av}</div><div class="nm">${esc(p.name)}</div>
+    <div class="lvl">${p.lv==='s'?'المستوى الصغير':'المستوى الكبير'}</div>
     <div class="starrow" aria-label="${AR(n)} نجوم من ${AR(LESSONS.length)}">${LESSONS.map((_,i)=>STAR(i<n)).join('')}</div></button>`}).join('');
   $('kids').querySelectorAll('.kid').forEach(b=>b.onclick=()=>{who=b.dataset.k;SFX.tap();openMap()});
   show('home');route('#');
@@ -779,13 +791,14 @@ function openMap(){
       +(got===ls.length?`<div class="banner"><p><b>أكملت ${u.title}!</b> تستحق شهادة.</p><button class="btn sun" data-cert="${u.n}">شهادتي 🏅</button></div>`:'')}).join('');
   $('path').querySelectorAll('.stop').forEach(b=>b.onclick=()=>{SFX.tap();openLesson(+b.dataset.i)});
   $('path').querySelectorAll('[data-cert]').forEach(b=>b.onclick=()=>openCert(+b.dataset.cert));
-  $('map-cert').innerHTML='';
+  $('map-cert').innerHTML=UNITS.every(u=>unitDone(u))?`<div class="banner"><p><b>🎓 أنهيت كل الدروس الستة عشر!</b> هذه شهادتك الكبرى.</p><button class="btn sun" data-cert="all">الشهادة الكبرى 🏆</button></div>`:'';
+  $('map-cert').querySelectorAll('[data-cert]').forEach(b=>b.onclick=()=>openCert('all'));
   renderTools();renderBadges();checkBadges();
   show('map');route('#'+who);
 }
 $('map-home').onclick=renderHome;
 
-const steps=()=>LESSONS[L].steps.filter(s=>!s.only||s.only===who);
+const steps=()=>LESSONS[L].steps.filter(s=>!s.only||s.only===lv());
 function openLesson(i){
   L=i;const st=steps();cur=Math.min(P().at[LESSONS[L].n]||0,st.length-1);
   if(P().stars[LESSONS[L].n]&&cur===st.length-1)cur=0;
@@ -830,7 +843,7 @@ function wireCopy(card,getEl){
 }
 const pairHTML=k=>{const s=SUBJ[k];return `<div class="pair">
   <figure class="short"><img src="${IMG[k+'-short']}" alt="صورة من وصف قصير: ${s.short}"><figcaption><b>كلمة واحدة</b>${s.short}</figcaption></figure>
-  <figure class="long"><img src="${IMG[k+'-long']}" alt="صورة من وصف مفصّل"><figcaption><b>وصف مفصّل</b>${who==='s'?s.tag:s.long}</figcaption></figure></div>
+  <figure class="long"><img src="${IMG[k+'-long']}" alt="صورة من وصف مفصّل"><figcaption><b>وصف مفصّل</b>${lv()==='s'?s.tag:s.long}</figcaption></figure></div>
   <div class="ask">${T(s.q)}</div>`};
 
 const R={
@@ -863,12 +876,12 @@ const R={
  reveal:s=>`<h2>${s.title}</h2><img class="shot" src="${IMG[s.pic]}" alt="صورة منطاد فوق الصحراء"><p class="lead">${s.q}</p>
    <div class="choices" id="rv">${s.opts.map(([t,ok])=>`<button data-ok="${ok}">${t}</button>`).join('')}</div>
    <div id="rvout" aria-live="polite"></div>`,
- builder:s=>{const gs=s.groups.filter(g=>!g.only||g.only===who);
+ builder:s=>{const gs=s.groups.filter(g=>!g.only||g.only===lv());
    return `<h2>${s.title}</h2><p>${T(s.intro)}</p><div class="chips">
    ${gs.map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
    ${s.free?`<div class="g"><b><label for="free">${s.free}</label></b><input type="text" id="free" value="${esc(s.freeEx||'')}"></div>`:''}
    </div><div class="prompt" id="bout"></div>${copyBtn()}${picBtn()}`},
- claude:s=>`<h2>${s.title||'جرّب مع نبيه'}</h2><p>${T(s.intro)||(who==='s'?COPY_S:COPY_B)}</p>
+ claude:s=>`<h2>${s.title||'جرّب مع نبيه'}</h2><p>${T(s.intro)||(lv()==='s'?COPY_S:COPY_B)}</p>
    <div class="prompt" id="cprompt">${T(s.prompt)}</div>${picBtn()}${aiReady()?`<div class="row"><button class="btn sun" data-tonabih>🤖 أرسله إلى نبيه</button></div>`:''}${copyBtn()}<div class="ask">${T(s.ask)}</div>
    <p class="note">هذا النشاط يحتاج إنترنت وشخصاً كبيراً بجانبك.</p>`,
  list:s=>`<h2>${s.title}</h2><p>ضع علامة على كل خطوة عندما تنتهي منها.</p><ol class="todo">
@@ -932,7 +945,7 @@ const W={
    if(r>=order.length){box.innerHTML=`<p class="lead center">رائع! عرفت كل الصور 🎉</p><p class="center">التفاصيل في الوصف هي التي تجعل كل صورة مختلفة.</p>`;SFX.star();return}
    const k=order[r],others=shuffle(s.subjects.filter(x=>x!==k)).slice(0,2),opts=shuffle([k,...others]);
    box.innerHTML=`<p class="score">الصورة ${AR(r+1)} من ${AR(order.length)}</p><img class="shot" src="${IMG[k+'-long']}" alt="صورة صنعها مولّد صور">
-    <div class="choices">${opts.map(o=>`<button data-k="${o}">${who==='s'?SUBJ[o].tag:SUBJ[o].long}</button>`).join('')}</div><div class="feedback" aria-live="polite"></div>`;
+    <div class="choices">${opts.map(o=>`<button data-k="${o}">${lv()==='s'?SUBJ[o].tag:SUBJ[o].long}</button>`).join('')}</div><div class="feedback" aria-live="polite"></div>`;
    box.querySelectorAll('.choices button').forEach(b=>b.onclick=()=>{const fb=box.querySelector('.feedback');
     if(b.dataset.k===k){b.classList.add('right');fb.style.color='var(--learn)';fb.textContent='صحيح! 👏';SFX.ok();
       box.querySelectorAll('.choices button').forEach(x=>x.disabled=true);
@@ -945,7 +958,7 @@ const W={
    if(ok)SFX.ok();else SFX.no();
    card.querySelector('#rvout').innerHTML=`${ok?'':`<p class="feedback" style="color:var(--wrong)">${s.fooled}</p>`}<div class="ask">${T(s.reveal)}</div>`}),
  builder:(s,card)=>{const out=card.querySelector('#bout'),free=card.querySelector('#free');
-  const upd=()=>{const v=[...card.querySelectorAll('.opts[data-g]')].map(g=>g.querySelector('[aria-pressed="true"]').textContent);out.textContent=s.tpl(v,free?free.value.trim():'',who)};
+  const upd=()=>{const v=[...card.querySelectorAll('.opts[data-g]')].map(g=>g.querySelector('[aria-pressed="true"]').textContent);out.textContent=s.tpl(v,free?free.value.trim():'',lv())};
   card.querySelectorAll('.opts[data-g] button').forEach(b=>b.onclick=()=>{b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));SFX.tap();upd()});
   if(free)free.oninput=upd;upd();wireCopy(card,()=>out);wirePic(card,()=>out.textContent)},
  claude:(s,card)=>{wireCopy(card,()=>card.querySelector('#cprompt'));wirePic(card,()=>card.querySelector('#cprompt').textContent);const t=card.querySelector('[data-tonabih]');if(t)t.onclick=()=>{openAsk();ask(card.querySelector('#cprompt').textContent.trim().slice(0,300))}},
@@ -983,7 +996,8 @@ $('next').onclick=()=>{
 const AVS=['🦁','🐯','🐼','🦊','🐸','🐙','🦄','🐢','🐧','🐝','🚀','⚽','🌈','🦋'];
 /* ---------- weekly report for parents (like a school progress note, on this device only) ---------- */
 let rep={k:null,back:0};
-const KIDS=()=>['s','b'];
+const KIDS=()=>S.order.slice();
+const LV_AR={s:'المستوى الصغير (٥ إلى ٧ سنوات)',b:'المستوى الكبير (٨ إلى ١٢ سنة)'};
 function weekStart(back){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7)-7*back);return d}
 function renderReport(){
   const ks=KIDS();if(!ks.includes(rep.k))rep.k=ks[0];const k=rep.k,p=S.prog[k],pr=S.profiles[k];
@@ -996,7 +1010,7 @@ function renderReport(){
   const pct=(a,b)=>b?AR(Math.round(100*a/b))+'٪':'—';
   const fmt=d=>d.toLocaleDateString('ar-EG',{day:'numeric',month:'long'});
   const last=new Date(en);last.setDate(last.getDate()-1);
-  const lv=skillOf(k);
+  const sk=skillOf(k);
   const tips=[];
   if(!ls.length)tips.push('لا دروس منتهية هذا الأسبوع. جرّبوا درساً واحداً قصيراً معاً (١٠ دقائق تكفي).');
   else tips.push(`${AR(ls.length)} ${ls.length===1?'درس منتهٍ':ls.length===2?'درسان منتهيان':'دروس منتهية'} هذا الأسبوع. اطلبوا من ${esc(pr.name)} شرح ${'«'+ls[ls.length-1].title+'»'} لكم بكلمات بسيطة.`);
@@ -1019,22 +1033,34 @@ function renderReport(){
    ${pics.length?`<div><b>🎨 من المعرض:</b><div class="rp-pics">${pics.slice(0,8).map(d=>`<img alt="${esc(d.prompt||'')}" src="${picSrc(d)}">`).join('')}</div></div>`:''}
    ${books.length?`<div><b>📖 القصص:</b> ${books.map(b=>`<span class="tag">${esc(b.title||'قصتي')} (${AR(b.pages.length)} صفحات)</span>`).join(' ')}</div>`:''}
    <div><b>🤖 استعمال نبيه:</b> ${AR(aiN)} مرّة${aiN?` ، منها ${AR((u.picture_medium||0)+(u.picture_high||0))} صور مفصّلة من ${AR(PICS_PER_WEEK)}`:''}.</div>
-   <div><b>📈 مستوى الأسئلة الآن:</b> ${SKILL_AR[lv]} <small class="note">يتغيّر وحده حسب آخر الإجابات: ${lv==='easy'?'خياران فقط في كل سؤال وأسئلة صح وخطأ أكثر.':lv==='hard'?'سؤال مراجعة إضافي في الدروس، و٤ أسئلة في التحدّي اليومي من دروس فيها أخطاء.':'أسئلة عادية.'}</small></div>
+   <div><b>📈 مستوى الأسئلة الآن:</b> ${SKILL_AR[sk]} <small class="note">يتغيّر وحده حسب آخر الإجابات: ${sk==='easy'?'خياران فقط في كل سؤال وأسئلة صح وخطأ أكثر.':sk==='hard'?'سؤال مراجعة إضافي في الدروس، و٤ أسئلة في التحدّي اليومي من دروس فيها أخطاء.':'أسئلة عادية.'}</small></div>
    <div class="rp-tips"><b>💡 لكم هذا الأسبوع:</b><ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;
   $('p-report').querySelectorAll('#rp-kids button').forEach(b=>b.onclick=()=>{rep.k=b.dataset.k;renderReport()});
   $('rp-prev').onclick=()=>{rep.back++;renderReport()};$('rp-next').onclick=()=>{rep.back=Math.max(0,rep.back-1);renderReport()};
 }
 function openParents(){
-  $('p-kids').innerHTML=['s','b'].map(k=>{const p=S.profiles[k];return `<div class="pcard" data-k="${k}" style="margin-bottom:16px">
-   <h2>${k==='s'?'الطفل الصغير (٦ سنوات)':'الطفل الكبير (١٠ سنوات)'}</h2>
-   <label>الاسم<input type="text" data-name value="${esc(p.name)}" maxlength="20"></label>
+  const ks=KIDS();
+  $('p-kids').innerHTML=`<div class="pcard" style="margin-bottom:16px"><h2>👧👦 الأطفال (${AR(ks.length)} من ${AR(MAX_KIDS)})</h2>
+   <p class="note">لكل طفل نجومه ومعرضه وقصصه ومستواه. الاسم الكامل يظهر على الشهادات فقط.</p></div>`+ks.map(k=>{const p=S.profiles[k];return `<div class="pcard" data-k="${k}" style="margin-bottom:16px">
+   <h2>${p.av} ${esc(p.name)}</h2>
+   <label>الاسم في التطبيق<input type="text" data-name value="${esc(p.name)}" maxlength="20"></label>
+   <label>الاسم الكامل للشهادة<input type="text" data-full value="${esc(p.full||'')}" maxlength="40" placeholder="مثلاً: ${esc(p.name)} محمد"></label>
+   <label>المستوى<select data-lv>${['s','b'].map(x=>`<option value="${x}" ${p.lv===x?'selected':''}>${LV_AR[x]}</option>`).join('')}</select></label>
    <div class="avs" role="group" aria-label="الصورة">${AVS.map(a=>`<button data-av="${a}" aria-pressed="${a===p.av}">${a}</button>`).join('')}</div>
    <p class="note">النجوم: ${AR(starCount(k))} من ${AR(LESSONS.length)}</p>
-   <div class="row"><button class="btn ghost" data-reset>ابدأ الرحلة من جديد</button></div></div>`}).join('');
-  $('p-kids').querySelectorAll('.pcard').forEach(c=>{const k=c.dataset.k;
-   c.querySelector('[data-name]').oninput=e=>{S.profiles[k].name=e.target.value.trim()||DEF.profiles[k].name;save()};
+   <div class="row"><button class="btn ghost" data-reset>ابدأ الرحلة من جديد</button>${ks.length>1?'<button class="btn ghost" data-del>🗑️ احذف هذا الطفل</button>':''}</div></div>`}).join('')
+   +(ks.length<MAX_KIDS?`<div class="row" style="margin-bottom:16px"><button class="btn sun" id="p-add">➕ أضف طفلاً</button></div>`:'');
+  $('p-kids').querySelectorAll('.pcard[data-k]').forEach(c=>{const k=c.dataset.k;
+   c.querySelector('[data-name]').oninput=e=>{S.profiles[k].name=e.target.value.trim()||'طفل';save()};
+   c.querySelector('[data-full]').oninput=e=>{S.profiles[k].full=e.target.value.trim();save()};
+   c.querySelector('[data-lv]').onchange=e=>{S.profiles[k].lv=e.target.value==='b'?'b':'s';save()};
    c.querySelectorAll('[data-av]').forEach(b=>b.onclick=()=>{S.profiles[k].av=b.dataset.av;save();c.querySelectorAll('[data-av]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
-   c.querySelector('[data-reset]').onclick=()=>{if(confirm('هل تريد مسح نجوم '+S.profiles[k].name+' وتقدّمه؟')){S.prog[k]={stars:{},at:{},todo:{}};save();openParents()}}});
+   c.querySelector('[data-reset]').onclick=()=>{if(confirm('هل تريد مسح نجوم '+S.profiles[k].name+' وتقدّمه؟')){S.prog[k]={stars:{},at:{},todo:{}};save();openParents()}};
+   const del=c.querySelector('[data-del]');if(del)del.onclick=()=>{if(confirm('تحذف '+S.profiles[k].name+' مع نجومه ورسوماته وقصصه من هذا الجهاز؟ لا يمكن التراجع.')){S.order=S.order.filter(x=>x!==k);delete S.profiles[k];delete S.prog[k];if(who===k)who=S.order[0];save();openParents()}}});
+  if($('p-add'))$('p-add').onclick=()=>{if(S.order.length>=MAX_KIDS)return;let i=1,id;do{id='k'+(i++)}while(S.profiles[id]);
+    const used=KIDS().map(k=>S.profiles[k].av);S.profiles[id]={name:'طفل '+AR(S.order.length+1),av:AVS.find(a=>!used.includes(a))||'🐼',lv:'s',full:''};
+    S.prog[id]={stars:{},at:{},todo:{}};S.order.push(id);save();openParents();
+    const c=$('p-kids').querySelector(`.pcard[data-k="${id}"]`);c.scrollIntoView({behavior:'smooth',block:'center'});c.querySelector('[data-name]').select()};
   renderReport();renderAiCard();
   show('parents');route('#parents');
 }
@@ -1100,11 +1126,11 @@ function openAsk(){
   $('ask-logo').innerHTML=LOGO(36);
   const n=LESSONS[L].n;
   if(!$('chat').children.length||$('chat').dataset.k!==who+n){$('chat').innerHTML='';$('chat').dataset.k=who+n;chatHist=[];
-    bubble('ai',who==='s'?'مرحباً! أنا نبيه 🤖، مساعدك الآلي. اسألني عن درس اليوم.':'مرحباً! أنا نبيه 🤖، مساعدك الآلي. اسألني أي سؤال عن درس اليوم أو عن الذكاء الاصطناعي.')}
-  $('sugs').innerHTML=(SUGS[n]?.[who]||[]).map(q=>`<button type="button">${q}</button>`).join('');
+    bubble('ai',lv()==='s'?'مرحباً! أنا نبيه 🤖، مساعدك الآلي. اسألني عن درس اليوم.':'مرحباً! أنا نبيه 🤖، مساعدك الآلي. اسألني أي سؤال عن درس اليوم أو عن الذكاء الاصطناعي.')}
+  $('sugs').innerHTML=(SUGS[n]?.[lv()]||[]).map(q=>`<button type="button">${q}</button>`).join('');
   $('sugs').querySelectorAll('button').forEach(b=>b.onclick=()=>ask(b.textContent));
   paintLeft();$('ask').hidden=false;document.body.style.overflow='hidden';
-  if(who==='b')setTimeout(()=>$('ask-q').focus(),50);
+  if(lv()==='b')setTimeout(()=>$('ask-q').focus(),50);
 }
 function closeAsk(){if(!$('ask').hidden){$('ask').hidden=true;document.body.style.overflow='';try{speechSynthesis.cancel()}catch(e){}}}
 async function ask(q){
@@ -1118,7 +1144,7 @@ async function ask(q){
   try{
     const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),60000);
     const r=await fetch(S.ai.url,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,
-      body:JSON.stringify({pin:S.ai.pin,level:who,lesson:LESSONS[L].n,question:q,history:chatHist.slice(-6)})});
+      body:JSON.stringify({pin:S.ai.pin,level:lv(),lesson:LESSONS[L].n,question:q,history:chatHist.slice(-6)})});
     clearTimeout(tm);
     const j=await r.json().catch(()=>({}));
     if(r.status===401){ans='الرقم السري غير صحيح. اطلب من بابا أو ماما ضبطه في ركن الأهل.';kind='error'}
@@ -1139,12 +1165,12 @@ $('ask-form').onsubmit=e=>{e.preventDefault();ask($('ask-q').value)};
 $('ask-q').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask($('ask-q').value)}});
 
 const USE_ROWS=[['picture_medium','🖼️ صور مفصّلة (المضمونة أسبوعياً)'],['picture_low','🖼️ صور إضافية أبسط'],['drawing_low','🎨 رسومات نبيه'],['cover_low','📖 أغلفة القصص'],['drawing_svg','🎨 رسومات بالأشكال'],['cover_svg','📖 أغلفة بالأشكال'],['story','✍️ جمل القصص'],['chat','💬 أسئلة لنبيه'],['mic','🎤 الميكروفون']];
-function useTable(){const ks=['s','b'],u=ks.map(k=>useOf(k));const rows=USE_ROWS.filter(([f])=>u.some(x=>x[f]));
+function useTable(){const ks=KIDS(),u=ks.map(k=>useOf(k));const rows=USE_ROWS.filter(([f])=>u.some(x=>x[f]));
   return `<details><summary>استعمال نبيه هذا الأسبوع</summary><p class="note">يبدأ الأسبوع يوم الاثنين. لكل طفل ${AR(PICS_PER_WEEK)} صور مفصّلة في الأسبوع، وبعدها تأتي الصور أبسط قليلاً.</p>${rows.length?`<table class="usetbl"><tr><th></th>${ks.map(k=>`<th>${esc(S.profiles[k].name)}</th>`).join('')}</tr>${rows.map(([f,l])=>`<tr><td>${l}</td>${u.map(x=>`<td>${AR(x[f]||0)}</td>`).join('')}</tr>`).join('')}</table>`:'<p class="note">لا استعمال بعد هذا الأسبوع.</p>'}</details>`}
 const KIND={off_topic:'خارج الموضوع',personal:'معلومة شخصية',refused:'رُفض',not_for_kids:'غير مناسب'};
 function renderAiCard(){
   const c=$('p-ai');const a=S.ai;
-  const logs=['s','b'].map(k=>{const l=S.prog[k].aiLog||[];return `<details><summary>آخر أسئلة ${esc(S.profiles[k].name)} (${AR(l.length)})</summary><div class="log">${
+  const logs=KIDS().map(k=>{const l=S.prog[k].aiLog||[];return `<details><summary>آخر أسئلة ${esc(S.profiles[k].name)} (${AR(l.length)})</summary><div class="log">${
     l.length?l.map(e=>`<div><small>${new Date(e.t).toLocaleString('ar')} ، ${typeof e.n==='number'?'الدرس '+AR(e.n):e.n} ${KIND[e.kind]?`<span class="tag">${KIND[e.kind]}</span>`:''}</small><b>${esc(e.q)}</b><br>${esc(e.a)}</div>`).join(''):'<p class="note">لا أسئلة بعد.</p>'
     }</div>${l.length?`<button class="btn ghost" data-clear="${k}" style="margin-top:8px">امسح القائمة</button>`:''}</details>`}).join('');
   c.innerHTML=`<h2>اسأل نبيه</h2>
@@ -1183,7 +1209,7 @@ function noneLeft(){return `<div class="empty">انتهت محاولات الي�
 async function aiCall(body){
   if(!navigator.onLine)return {fail:'أحتاج إلى الإنترنت. اطلب من بابا أو ماما تشغيله. 📶'};
   try{const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),90000);
-    const r=await fetch(S.ai.url,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify(Object.assign({pin:S.ai.pin,level:who},body))});
+    const r=await fetch(S.ai.url,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify(Object.assign({pin:S.ai.pin,level:lv()},body))});
     clearTimeout(tm);const j=await r.json().catch(()=>({}));if(j&&j.used)trackUse(j.used);
     if(r.status===401)return {fail:'الرقم السري غير صحيح. اطلب من بابا أو ماما ضبطه في ركن الأهل.'};
     if(j.error==='image_key')return {fail:'مفتاح مولّد الصور غير صحيح. اطلب من بابا أو ماما التحقّق منه في الخادم. 🔑'};
@@ -1274,11 +1300,11 @@ function paintStudio(){
   const kind=P().drawKind==='image'?'image':'svg';
   c.innerHTML=`<div class="chips"><div class="g"><b>من يرسم؟</b><div class="opts" id="d-kind"><button data-k="svg" aria-pressed="${kind==='svg'}">🎨 رسم نبيه</button><button data-k="image" aria-pressed="${kind==='image'}">🖼️ مولّد الصور</button></div></div></div>
    <p>${kind==='svg'
-     ?(who==='s'?'اختر من كل صف، ثم اضغط «ارسم!». نبيه يرسم لك رسمة كرتونية بسيطة بألوان زاهية.':'اختر المكوّنات، وأضف تفاصيلك الخاصة. نبيه يرسم رسمة كرتونية بسيطة وسريعة. أمّا «مولّد الصور» فيصنع صورة مفصّلة تشبه الحقيقية.')
-     :(who==='s'?'مولّد الصور يصنع صورة تشبه الحقيقية! يبدأ من نقاط عشوائية مثل الثلج على التلفاز، ثم يرتّبها خطوة خطوة حتى تظهر صورتك.':'مولّد الصور (ذكاء اصطناعي متخصّص بالصور) يبدأ من الضوضاء العشوائية ويزيلها خطوة بعد خطوة، ووصفك يوجّهه، كما رأيت في الدرس ٤. كلما كان وصفك أدقّ، جاءت الصورة أقرب لما في خيالك.')}</p>
-   ${canMic()?`<div class="row" style="justify-content:center;align-items:center"><button class="btn micbtn" id="d-mic">🎤 ${who==='s'?'قل ما تريد':'قل وصفك بصوتك'}</button><span class="note" id="d-micmsg" aria-live="polite"></span></div>`:''}
-   <div class="chips">${DRAW[who].map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
-   <div class="g"><b><label for="d-extra">${who==='s'?'شيء إضافي؟ (اختياري)':'تفاصيل إضافية بكلماتك (اختياري)'}</label></b><textarea class="free" id="d-extra" maxlength="160" placeholder="${who==='s'?'مثلاً: يلبس قبعة':'مثلاً: يبتسم ويحمل مظلة صفراء'}"></textarea></div></div>
+     ?(lv()==='s'?'اختر من كل صف، ثم اضغط «ارسم!». نبيه يرسم لك رسمة كرتونية بسيطة بألوان زاهية.':'اختر المكوّنات، وأضف تفاصيلك الخاصة. نبيه يرسم رسمة كرتونية بسيطة وسريعة. أمّا «مولّد الصور» فيصنع صورة مفصّلة تشبه الحقيقية.')
+     :(lv()==='s'?'مولّد الصور يصنع صورة تشبه الحقيقية! يبدأ من نقاط عشوائية مثل الثلج على التلفاز، ثم يرتّبها خطوة خطوة حتى تظهر صورتك.':'مولّد الصور (ذكاء اصطناعي متخصّص بالصور) يبدأ من الضوضاء العشوائية ويزيلها خطوة بعد خطوة، ووصفك يوجّهه، كما رأيت في الدرس ٤. كلما كان وصفك أدقّ، جاءت الصورة أقرب لما في خيالك.')}</p>
+   ${canMic()?`<div class="row" style="justify-content:center;align-items:center"><button class="btn micbtn" id="d-mic">🎤 ${lv()==='s'?'قل ما تريد':'قل وصفك بصوتك'}</button><span class="note" id="d-micmsg" aria-live="polite"></span></div>`:''}
+   <div class="chips">${DRAW[lv()].map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
+   <div class="g"><b><label for="d-extra">${lv()==='s'?'شيء إضافي؟ (اختياري)':'تفاصيل إضافية بكلماتك (اختياري)'}</label></b><textarea class="free" id="d-extra" maxlength="160" placeholder="${lv()==='s'?'مثلاً: يلبس قبعة':'مثلاً: يبتسم ويحمل مظلة صفراء'}"></textarea></div></div>
    <div class="prompt" id="d-prompt"></div>
    <button class="btn sun" id="d-go" style="align-self:center;font-size:1.25rem">${kind==='svg'?'🎨 ارسم!':'🖼️ اصنع الصورة!'}</button>
    <div class="left" id="d-left"></div>
@@ -1289,7 +1315,7 @@ function paintStudio(){
   c.querySelectorAll('.opts[data-g] button').forEach(b=>b.onclick=()=>{b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));if(c.dataset.voice==='1'){$('d-extra').value='';$('d-micmsg').textContent=''}c.dataset.voice='';voiceText='';SFX.tap();upd()});
   $('d-extra').oninput=()=>{if(c.dataset.voice==='1')voiceText=$('d-extra').value;upd()};upd();
   if($('d-mic'))wireMic($('d-mic'),$('d-micmsg'),text=>{$('d-extra').value=voiceText=text;c.dataset.voice='1';upd();
-    $('d-micmsg').textContent=who==='s'?'سمعتك! 👂 اضغط «ارسم».':'سمعتك! 👂 الوصف الآن من كلامك. يمكنك تعديله، أو اضغط أي اختيار لتعود إلى الاختيارات.'});
+    $('d-micmsg').textContent=lv()==='s'?'سمعتك! 👂 اضغط «ارسم».':'سمعتك! 👂 الوصف الآن من كلامك. يمكنك تعديله، أو اضغط أي اختيار لتعود إلى الاختيارات.'});
   $('d-kind').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(drawing)return;P().drawKind=b.dataset.k;save();SFX.tap();paintStudio()});
   const paintLeftD=()=>{const n=left(),w=picsLeftWeek();$('d-left').textContent=n?`بقي لك ${AR(n)} اليوم`+(kind==='image'?(w?` ، و${AR(w)} صور مفصّلة هذا الأسبوع`:' ، والصور بعد ذلك أبسط قليلاً حتى الأسبوع القادم'):''):'انتهت محاولات اليوم. نلتقي غداً! 🌙';$('d-go').disabled=!n||drawing};
   paintLeftD();
@@ -1344,8 +1370,8 @@ function paintStoryHome(){
 }
 function paintStorySetup(){
   const c=$('story');
-  c.innerHTML=`<h2>فكرة القصة</h2><p>${who==='s'?'اختر البطل والمكان، ونبيه يكتب أول جملة. ثم تتناوبان: جملة منك وجملة من نبيه.':'اختر البطل والمكان والمشكلة، أو اكتب فكرتك. ستتناوب مع نبيه: جملة منك وجملة منه. أنت المؤلّف!'}</p>
-   <div class="chips">${STORY[who].map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
+  c.innerHTML=`<h2>فكرة القصة</h2><p>${lv()==='s'?'اختر البطل والمكان، ونبيه يكتب أول جملة. ثم تتناوبان: جملة منك وجملة من نبيه.':'اختر البطل والمكان والمشكلة، أو اكتب فكرتك. ستتناوب مع نبيه: جملة منك وجملة منه. أنت المؤلّف!'}</p>
+   <div class="chips">${STORY[lv()].map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
    <div class="g"><b><label for="s-own">أو اكتب فكرتك (اختياري)</label></b><textarea class="free" id="s-own" maxlength="160"></textarea></div></div>
    <div class="row"><button class="btn ghost" id="s-cancel">→ رجوع</button><button class="btn sun" id="s-start">ابدأ القصة ←</button></div><div class="feedback" id="s-msg"></div>`;
   c.querySelectorAll('.opts[data-g] button').forEach(b=>b.onclick=()=>{b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));SFX.tap()});
@@ -1354,7 +1380,7 @@ function paintStorySetup(){
     if(!left()){$('s-msg').textContent='انتهت محاولات اليوم. نلتقي غداً! 🌙';return}
     const v=[...c.querySelectorAll('.opts[data-g]')].map(g=>g.querySelector('[aria-pressed="true"]').textContent);
     const own=$('s-own').value.trim();
-    const setup=own||(who==='s'?`${v[0]} ${v[1]}`:`${v[0]} في ${v[1]}، ${v[2]}`);
+    const setup=own||(lv()==='s'?`${v[0]} ${v[1]}`:`${v[0]} في ${v[1]}، ${v[2]}`);
     cur_story={t:Date.now(),setup,title:'',pages:[],choices:[]};
     await storyTurn('');
   };
@@ -1382,7 +1408,7 @@ function paintStoryWrite(waiting){
    ${waiting?'<div class="page claude wait"><small>🤖 نبيه</small>يكتب… <span class="dots3"><span>•</span><span>•</span><span>•</span></span></div>':''}</div>
    ${waiting?'':`<b>دورك! ماذا يحدث بعد ذلك؟</b>
    ${st.choices.length?`<div class="sugs">${st.choices.map(ch=>`<button type="button">${esc(ch)}</button>`).join('')}</div>`:''}
-   <textarea class="free" id="w-line" maxlength="200" placeholder="${who==='s'?'اختر فكرة أو اطلب من بابا أو ماما كتابة جملتك':'اكتب جملتك هنا'}"></textarea>
+   <textarea class="free" id="w-line" maxlength="200" placeholder="${lv()==='s'?'اختر فكرة أو اطلب من بابا أو ماما كتابة جملتك':'اكتب جملتك هنا'}"></textarea>
    <div class="row"><button class="btn sun" id="w-add">أضف جملتي ←</button>${canEnd?'<button class="btn ghost" id="w-end">🏁 اختم القصة</button>':''}<button class="btn ghost" id="w-quit">خروج</button></div>
    <div class="left">${AR(left())} محاولات بقيت اليوم${canEnd?'':' ، تستطيع ختم القصة بعد ٤ صفحات'}</div><div class="feedback" id="w-msg" aria-live="polite"></div>`}`;
   if(waiting)return;
@@ -1433,23 +1459,23 @@ function seeded(seed){let x=0;for(const ch of seed)x=(x*31+ch.charCodeAt(0))>>>0
 function dailyQuestions(){
   const done=LESSONS.filter(l=>P().stars[l.n]);const pool=(done.length?done:[LESSONS[0]]);const qs=[];
   pool.forEach(l=>{
-    (TF[l.n]?.[who]||[]).forEach(([t,ok])=>qs.push({q:'صح أم خطأ؟ '+t,c:[['صح ✓',ok],['خطأ ✗',ok?0:1]],n:l.n}));
-    l.steps.filter(st=>!st.only||st.only===who).forEach(st=>{
+    (TF[l.n]?.[lv()]||[]).forEach(([t,ok])=>qs.push({q:'صح أم خطأ؟ '+t,c:[['صح ✓',ok],['خطأ ✗',ok?0:1]],n:l.n}));
+    l.steps.filter(st=>!st.only||st.only===lv()).forEach(st=>{
       if(st.t==='quiz')qs.push({q:T(st.q),c:T(st.choices).map(([a,ok])=>[a,ok]),n:l.n});
       if(st.t==='quizset')T(st.qs).forEach(([q,c])=>qs.push({q,c,n:l.n}));
       if(st.t==='sort')st.items.forEach(([pic,name,ans])=>qs.push({q:`${pic} ${name}: ${T(st.title).replace(/^لعبة: /,'')}`,c:st.labels.map((lb,k)=>[lb.t.split(':')[0],k===ans?1:0]),n:l.n}));
     })});
-  const r=seeded(today()+who);const pick=[];let cp=qs.slice();const lv=skillOf();
+  const r=seeded(today()+who);const pick=[];let cp=qs.slice();const sk=skillOf();
   // easy: prefer true/false questions; hard: 4 questions, first from lessons the child missed lately
-  if(lv==='easy'){const tf=cp.filter(q=>q.c.length===2);if(tf.length>=3)cp=tf}
-  const want=lv==='hard'?4:3;
-  if(lv==='hard'){const miss=(P().missed||[]).slice().reverse();for(const n of miss){if(pick.length>=2)break;const m=cp.filter(q=>q.n===n);if(m.length){const q=m[Math.floor(r()*m.length)];pick.push(q);cp.splice(cp.indexOf(q),1)}}}
+  if(sk==='easy'){const tf=cp.filter(q=>q.c.length===2);if(tf.length>=3)cp=tf}
+  const want=sk==='hard'?4:3;
+  if(sk==='hard'){const miss=(P().missed||[]).slice().reverse();for(const n of miss){if(pick.length>=2)break;const m=cp.filter(q=>q.n===n);if(m.length){const q=m[Math.floor(r()*m.length)];pick.push(q);cp.splice(cp.indexOf(q),1)}}}
   while(pick.length<want&&cp.length)pick.push(cp.splice(Math.floor(r()*cp.length),1)[0]);
   return pick;
 }
 /* one question from an earlier finished lesson, for the "hard" level */
 function reviewQuestion(curN){const done=LESSONS.filter(l=>P().stars[l.n]&&l.n!==curN);if(!done.length)return null;
-  const l=done[Math.floor(Math.random()*done.length)];const st=l.steps.find(x=>x.t==='quizset'&&(!x.only||x.only===who));if(!st)return null;
+  const l=done[Math.floor(Math.random()*done.length)];const st=l.steps.find(x=>x.t==='quizset'&&(!x.only||x.only===lv()));if(!st)return null;
   const qq=T(st.qs);const q=qq[Math.floor(Math.random()*qq.length)];return [q[0],q[1],q[2]||'',l.title]}
 function openDaily(){show('daily');route('#'+who+'/daily');runDaily(false)}
 function runDaily(practice){
@@ -1852,7 +1878,7 @@ const readAloud=(t,btn)=>{try{speechSynthesis.cancel();const u=new SpeechSynthes
   if(btn){btn.classList.add('on');u.onend=u.onerror=()=>btn.classList.remove('on')}speechSynthesis.speak(u)}catch(e){}};
 Object.assign(R,{
  story:s=>{const [title]=T(s.st);return `<h2>📖 ${title}</h2><div class="story" id="sty"></div>`},
- quizset:s=>`<h2>🧩 أسئلة أكثر</h2><p>${who==='s'?'ثلاثة أسئلة سريعة. اطلب من بابا أو ماما قراءة السؤال.':'ثلاثة أسئلة لتتأكّد أنك فهمت. اقرأ الشرح بعد كل جواب.'}</p><div id="qsbox"></div>`,
+ quizset:s=>`<h2>🧩 أسئلة أكثر</h2><p>${lv()==='s'?'ثلاثة أسئلة سريعة. اطلب من بابا أو ماما قراءة السؤال.':'ثلاثة أسئلة لتتأكّد أنك فهمت. اقرأ الشرح بعد كل جواب.'}</p><div id="qsbox"></div>`,
  home:s=>{const [title,need,steps]=T(s.hm);return `<h2>📌 خلاصة الدرس</h2><ul class="recap">${T(s.rc).map(p=>`<li>${p}</li>`).join('')}</ul>
    <div class="homeact"><div class="ic" aria-hidden="true">🏠</div><b>نشاط في البيت: ${title}</b>
    <p class="need"><b>ستحتاج:</b> ${need}</p><ol>${steps.map(x=>`<li>${x}</li>`).join('')}</ol></div>
@@ -1895,10 +1921,10 @@ Object.assign(R,{
  pixels:s=>`<h2>${s.title}</h2><p>${T(s.intro)}</p>
    <div class="seg" id="px-pal">${PIX_COL.slice(1).map((c,i)=>`<button aria-pressed="${i===0}" data-c="${i+1}" style="background:${c};width:44px;height:44px;border-radius:50%" aria-label="لون ${AR(i+1)}"></button>`).join('')}<button data-c="0" aria-pressed="false" style="width:44px;height:44px;border-radius:50%" aria-label="ممحاة">🧽</button></div>
    <div class="pix" id="px" dir="ltr">${Array.from({length:100},(_,i)=>`<button data-i="${i}" aria-label="مربّع"></button>`).join('')}</div>
-   <div class="row" style="justify-content:center">${who==='s'?'<button class="btn ghost" id="px-help">ساعدني ❤️</button>':''}<button class="btn" id="px-num">أرني الأرقام 🔢</button><button class="btn ghost" id="px-clear">امسح</button></div>
+   <div class="row" style="justify-content:center">${lv()==='s'?'<button class="btn ghost" id="px-help">ساعدني ❤️</button>':''}<button class="btn" id="px-num">أرني الأرقام 🔢</button><button class="btn ghost" id="px-clear">امسح</button></div>
    <p class="note center" id="px-note"></p>`,
  speak:s=>`<h2>${s.title}</h2><p>${T(s.intro)}</p><div class="sugs" id="sp-lines">${T(s.lines).map(l=>`<button type="button">${l}</button>`).join('')}</div>
-   ${who==='b'?'<textarea class="free" id="sp-own" maxlength="120" placeholder="أو اكتب جملتك هنا"></textarea>':''}
+   ${lv()==='b'?'<textarea class="free" id="sp-own" maxlength="120" placeholder="أو اكتب جملتك هنا"></textarea>':''}
    <div class="wave" id="sp-wave" aria-hidden="true">${Array.from({length:16},()=>'<i></i>').join('')}</div>
    <button class="btn sun" id="sp-go" style="align-self:center;font-size:1.2rem">🔊 تكلّم</button><p class="note center" id="sp-note"></p>`,
  pattern:s=>`<h2>${s.title}</h2><p>${T(s.intro)}</p><div id="pt-box"></div>`,
@@ -1937,7 +1963,7 @@ Object.assign(W,{
   const help=card.querySelector('#px-help');
   if(help)help.onclick=()=>{PIX_HEART.join('').split('').forEach((v,i)=>{if(v==='1'&&grid[i]===0){cells[i].style.background='#FBE4E4'}});card.querySelector('#px-note').textContent='لوّن المربّعات الوردية بالأحمر لترسم قلباً.'};
   card.querySelector('#px-num').onclick=()=>{nums=!nums;cells.forEach((_,i)=>paint(i));card.querySelector('#px-num').textContent=nums?'أرني الألوان 🎨':'أرني الأرقام 🔢';
-    card.querySelector('#px-note').textContent=nums?(who==='s'?'هكذا يرى الحاسوب رسمتك: أرقام! ٠ أبيض، ١ أحمر، ٢ أزرق...':'الحاسوب يحفظ رسمتك كجدول من ١٠٠ رقم. الصور الحقيقية فيها ملايين الأرقام، ولكل بكسل ٣ أرقام للأحمر والأخضر والأزرق.'):''};
+    card.querySelector('#px-note').textContent=nums?(lv()==='s'?'هكذا يرى الحاسوب رسمتك: أرقام! ٠ أبيض، ١ أحمر، ٢ أزرق...':'الحاسوب يحفظ رسمتك كجدول من ١٠٠ رقم. الصور الحقيقية فيها ملايين الأرقام، ولكل بكسل ٣ أرقام للأحمر والأخضر والأزرق.'):''};
   card.querySelector('#px-clear').onclick=()=>{grid.fill(0);cells.forEach((_,i)=>paint(i));card.querySelector('#px-note').textContent=''};
   cells.forEach((_,i)=>paint(i));
  },
@@ -1987,7 +2013,7 @@ Object.assign(W,{
    out.innerHTML=`<p class="center">تدرّب الروبوت على ${k?'تفاح أحمر وأخضر':'تفاح أحمر فقط'}. الآن نختبره:</p><button class="btn sun" id="bi-test" style="display:block;margin:8px auto">اختبر بتفاحة خضراء 🍏</button>`;
    out.querySelector('#bi-test').onclick=()=>{tried[k]=1;
     out.innerHTML=k?`<div class="ask" style="background:var(--learn-bg)">🤖 «هذه تفاحة! ✅» تعلّم الروبوت أن التفاح يأتي بألوان مختلفة.</div>`
-      :`<div class="ask" style="background:var(--wrong-bg)">🤖 «هذه ليست تفاحة! ❌» أخطأ الروبوت لأنه رأى تفاحاً أحمر فقط. ${who==='b'?'هذا هو التحيّز: أمثلة ناقصة تعني نتائج غير عادلة.':''}</div>`;
+      :`<div class="ask" style="background:var(--wrong-bg)">🤖 «هذه ليست تفاحة! ❌» أخطأ الروبوت لأنه رأى تفاحاً أحمر فقط. ${lv()==='b'?'هذا هو التحيّز: أمثلة ناقصة تعني نتائج غير عادلة.':''}</div>`;
     if(k)SFX.ok();else SFX.no();
     if(tried[0]&&tried[1])out.innerHTML+=`<p class="lead center">جرّبت السلّتين! الأمثلة المتنوّعة تجعل الذكاء الاصطناعي أذكى وأعدل. 🌈</p>`;
     else out.innerHTML+=`<p class="note center">الآن جرّب السلّة الأخرى!</p>`}})},
@@ -2027,23 +2053,68 @@ Object.assign(W,{
 /* ---------- dictionary ---------- */
 function openDict(){show('dict');route('#'+who+'/dict');
   const p=P(),c=$('dict');let n=0;
-  c.innerHTML=`<p>${who==='s'?'كل درس تنهيه يضيف كلمة جديدة إلى قاموسك!':'الكلمات التي تعلّمتها في الرحلة. أنهِ الدروس لتفتح كلمات جديدة.'}</p><div class="dict">${LESSONS.map(l=>{const f=FACTS[l.n];const has=!!p.stars[l.n];if(has)n++;
+  c.innerHTML=`<p>${lv()==='s'?'كل درس تنهيه يضيف كلمة جديدة إلى قاموسك!':'الكلمات التي تعلّمتها في الرحلة. أنهِ الدروس لتفتح كلمات جديدة.'}</p><div class="dict">${LESSONS.map(l=>{const f=FACTS[l.n];const has=!!p.stars[l.n];if(has)n++;
    return `<div class="dword${has?'':' off'}"><span class="ic" aria-hidden="true">${has?f.ic:'🔒'}</span><div><b>${has?f.word.w:'كلمة مخفيّة'}</b><small>${has?T(f.word.d):'تُفتح في الدرس '+AR(l.n)}</small></div></div>`}).join('')}</div>`;
   c.insertAdjacentHTML('afterbegin',`<div class="streak">📚 ${AR(n)} من ${AR(LESSONS.length)} كلمة</div>`);
 }
 
 /* ---------- certificate ---------- */
-function openCert(un){
-  const u=UNITS.find(x=>x.n===un)||UNITS.find(x=>unitDone(x))||UNITS[0];
+const CERT_TXT={1:'في هذه الرحلة: كيف يتعلّم الذكاء الاصطناعي من الأمثلة، وكيف يكتب ويرسم، وكيف نستعمله بأمان وصدق.',
+  2:'في هذه الرحلة: كيف يرى الحاسوب ويسمع، وكيف يكتشف الأنماط، وبرمجة روبوت، وتدريب نموذج خاص، ولماذا يجب أن يكون الذكاء الاصطناعي عادلاً.',
+  all:'ستة عشر درساً: من «ما هو الذكاء الاصطناعي؟» إلى تصميم مساعد ذكي آمن وعادل. أصبحت تعرف كيف يتعلّم ويكتب ويرسم ويرى ويسمع، وكيف نستعمله بحكمة.'};
+let certNow=null;
+function certData(un){
+  const all=un==='all';const u=all?{n:'all',title:'رحلة الذكاء الاصطناعي كاملة',sub:'البطل',icon:'🏆',from:1,to:LESSONS.length}:(UNITS.find(x=>x.n===un)||UNITS.find(x=>unitDone(x))||UNITS[0]);
   const p=S.profiles[who];const last=Math.max(0,...Object.entries(P().stars).filter(([n])=>+n>=u.from&&+n<=u.to).map(([,t])=>Number(t)));
-  const d=new Date(last||Date.now());
-  $('cert').innerHTML=`${LOGO(90)}<div class="eyebrow">شهادة إتمام</div><div class="big">${esc(p.name)} ${p.av}</div>
-   <p class="lead">أكمل ${u.icon} ${u.title} (مستوى ${u.sub}) في رحلة الذكاء الاصطناعي بنجاح، وجمع ثماني نجوم.</p>
-   <div class="starrow">${Array.from({length:u.to-u.from+1},()=>STAR(true)).join('')}</div>
-   <p>${u.n===1?'تعلّم كيف يتعلّم الذكاء الاصطناعي، وكيف يكتب ويرسم، وكيف نستعمله بأمان وصدق.':'تعلّم كيف يرى الحاسوب ويسمع، وكيف يكتشف الأنماط، وبرمج روبوتاً، ودرّب نموذجه الخاص، وعرف لماذا يجب أن يكون الذكاء الاصطناعي عادلاً.'}</p>
-   <p class="note">${AR(d.getDate())}/${AR(d.getMonth()+1)}/${AR(d.getFullYear())}</p>`;
+  const d=new Date(last||Date.now());const stars=u.to-u.from+1;
+  return {u,all,name:(p.full||p.name).trim(),av:p.av,stars,date:`${AR(d.getDate())} / ${AR(d.getMonth()+1)} / ${AR(d.getFullYear())}`,
+    line:all?`لإتمام جميع دروس رحلة الذكاء الاصطناعي بنجاح، وجمع ${AR(stars)} نجمة.`:`لإتمام ${u.title} (مستوى ${u.sub}) في رحلة الذكاء الاصطناعي بنجاح، وجمع ثماني نجوم.`,
+    txt:CERT_TXT[u.n]||''};
+}
+function openCert(un){
+  const c=certNow=certData(un);
+  $('cert').className='cert'+(c.all?' grand':'');
+  $('cert').innerHTML=`${LOGO(90)}<div class="eyebrow">${c.all?'الشهادة الكبرى':'شهادة إتمام'} ${c.u.icon}</div><p>تُمنح هذه الشهادة إلى</p><div class="big">${esc(c.name)} ${c.av}</div>
+   <p class="lead">${c.line}</p>
+   <div class="starrow">${Array.from({length:Math.min(c.stars,16)},()=>STAR(true)).join('')}</div>
+   <p>${c.txt}</p>
+   <div class="row cert-sign"><span>🤖 نبيه<br><small class="note">المساعد الآلي</small></span><span>${c.date}<br><small class="note">التاريخ</small></span></div>
+   ${S.profiles[who].full?'':`<p class="note noprint">💡 اكتبوا الاسم الكامل في «ركن الأهل» ليظهر على الشهادة.</p>`}`;
   show('cert');confetti();SFX.star();
 }
+/* draw the certificate on a canvas, so it can be saved or shared as a picture (works in the store app too) */
+function wrapLines(ctx,text,max){const words=text.split(' ');const lines=[];let line='';
+  for(const w of words){const t=line?line+' '+w:w;if(ctx.measureText(t).width>max&&line){lines.push(line);line=w}else line=t}if(line)lines.push(line);return lines}
+async function certCanvas(c){
+  const W=1754,H=1240,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  try{await document.fonts.ready}catch(e){}
+  const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,'#FFF8E6');g.addColorStop(1,'#EAF2FF');x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.strokeStyle=c.all?'#7B5CFF':'#F2A531';x.lineWidth=18;x.strokeRect(40,40,W-80,H-80);x.lineWidth=4;x.strokeRect(72,72,W-144,H-144);
+  const logo=await new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);let svg=LOGO(220).replace(/box-shadow:[^;"]*;?/,'');if(!/xmlns=/.test(svg))svg=svg.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');im.src=svgSrc(svg)});
+  if(logo)x.drawImage(logo,W/2-90,110,180,180);
+  x.direction='rtl';x.textAlign='center';x.fillStyle='#1D2B4A';
+  const D='"Baloo Bhaijaan 2","Tajawal",sans-serif',B='"Tajawal",sans-serif';
+  x.font=`800 64px ${D}`;x.fillText((c.all?'الشهادة الكبرى ':'شهادة إتمام ')+c.u.icon,W/2,370);
+  x.font=`500 38px ${B}`;x.fillStyle='#4A5878';x.fillText('تُمنح هذه الشهادة إلى',W/2,440);
+  x.fillStyle=c.all?'#5B3CDF':'#1D2B4A';x.font=`800 104px ${D}`;x.fillText(c.name+' '+c.av,W/2,560);
+  x.fillStyle='#1D2B4A';x.font=`700 40px ${B}`;wrapLines(x,c.line,W-360).forEach((l,i)=>x.fillText(l,W/2,650+i*54));
+  const n=Math.min(c.stars,16),sz=46,gap=10,tot=n*sz+(n-1)*gap;x.fillStyle='#F2A531';
+  for(let i=0;i<n;i++){const cx=W/2-tot/2+i*(sz+gap)+sz/2,cy=770;x.beginPath();for(let k=0;k<10;k++){const r=k%2?sz*0.22:sz/2,a=-Math.PI/2+k*Math.PI/5;x.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a))}x.closePath();x.fill()}
+  x.fillStyle='#4A5878';x.font=`500 34px ${B}`;wrapLines(x,c.txt,W-400).forEach((l,i)=>x.fillText(l,W/2,860+i*48));
+  x.fillStyle='#1D2B4A';x.font=`700 38px ${B}`;x.fillText('🤖 نبيه',W-420,1060);x.fillText(c.date,420,1060);
+  x.font=`500 28px ${B}`;x.fillStyle='#6B7896';x.fillText('المساعد الآلي',W-420,1105);x.fillText('التاريخ',420,1105);
+  x.font=`600 28px ${B}`;x.fillText('رحلة الذكاء الاصطناعي',W/2,1105);
+  return cv;
+}
+async function saveCert(){
+  if(!certNow)return;const btn=$('c-save');btn.disabled=true;
+  try{const cv=await certCanvas(certNow);const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+    const file=new File([blob],`شهادة-${certNow.name.replace(/\s+/g,'-')}.png`,{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:'شهادة رحلة الذكاء الاصطناعي'})}catch(e){}}
+    else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast('حُفظت صورة الشهادة 🎉')}}
+  catch(e){toast('لم أستطع حفظ الصورة. جرّب «اطبع أو PDF».')}
+  btn.disabled=false}
+$('c-save').onclick=saveCert;
 $('c-back').onclick=openMap;
 
 /* ---------- install (hosted version only) ---------- */
@@ -2055,10 +2126,10 @@ if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostn
 
 /* ---------- start ---------- */
 (function start(){
-  const h=location.hash.slice(1);const m=/^(s|b)(?:\/(\d+))?$/.exec(h);
+  const h=location.hash.slice(1);const m=/^([a-z0-9]{1,8})(?:\/(\d+))?$/.exec(h);
   if(h==='parents')return openParents();
-  const t=/^(s|b)\/(studio|story|daily|dict)$/.exec(h);if(t){who=t[1];return ({studio:openStudio,story:openStory,daily:openDaily,dict:openDict})[t[2]]()}
-  if(m){who=m[1];if(m[2]){const i=LESSONS.findIndex(l=>l.n===+m[2]);if(i>=0)return openLesson(i)}return openMap()}
+  const t=/^([a-z0-9]{1,8})\/(studio|story|daily|dict)$/.exec(h);if(t&&S.profiles[t[1]]){who=t[1];return ({studio:openStudio,story:openStory,daily:openDaily,dict:openDict})[t[2]]()}
+  if(m&&S.profiles[m[1]]){who=m[1];if(m[2]){const i=LESSONS.findIndex(l=>l.n===+m[2]);if(i>=0)return openLesson(i)}return openMap()}
   renderHome();
 })();
 </script>
