@@ -253,6 +253,7 @@ details{border:2px solid var(--line);border-radius:16px;padding:10px 14px}
 details summary{font-weight:700;cursor:pointer}
 details ol{margin:8px 0 0;padding-inline-start:1.3em}
 
+.usetbl{width:100%;border-collapse:collapse;margin:8px 0}.usetbl th,.usetbl td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:start}.usetbl td:not(:first-child),.usetbl th:not(:first-child){text-align:center}
 /* certificate */
 .cert{background:var(--card);border:6px double var(--sun);border-radius:28px;padding:clamp(22px,6vw,44px);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
 .cert .big{font-family:var(--display);font-weight:800;font-size:clamp(2rem,8vw,3rem);line-height:1.2}
@@ -801,7 +802,7 @@ function wirePic(card,getText){
     box.hidden=false;tag.hidden=true;acts.hidden=true;
     box.innerHTML=`<div class="wait"><span class="pencil" aria-hidden="true">🌫️</span>مولّد الصور يزيل الضوضاء خطوة خطوة…<br><small>قد يأخذ ذلك دقيقة</small></div>`;
     box.scrollIntoView({behavior:'smooth',block:'center'});
-    const j=await aiCall({mode:'image',prompt});
+    const j=await aiCall({mode:'image',prompt,tier:picsLeftWeek()?'week':'extra'});
     if(j.image){const img=await shrinkPic(j.image);addUse();last={t:Date.now(),prompt,img};logQ('🖼️ '+prompt,'(صورة)','answer');
       box.innerHTML=`<img alt="صورة من مولّد الصور: ${esc(prompt)}" src="${img}">`;
       tag.textContent='🤖 صنعها الذكاء الاصطناعي من وصفك. ليست صورة حقيقية.';tag.hidden=false;acts.hidden=false;sv.disabled=false;sv.textContent='💾 احفظ في معرضي';SFX.ok()}
@@ -1003,6 +1004,15 @@ const aiReady=()=>S.ai.on&&/^https:\/\//.test(S.ai.url)&&!!S.ai.pin;
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
 function usedToday(k){const u=S.prog[k].aiDay;return u&&u.d===today()?u.n:0}
 function addUse(){const n=usedToday(who)+1;P().aiDay={d:today(),n};save()}
+/* AI use per child per week (for the parents' report and the running-cost estimate) */
+const PICS_PER_WEEK=10;
+const weekKey=(d=new Date())=>{d=new Date(d.getFullYear(),d.getMonth(),d.getDate());d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+function useOf(k,wk){const u=(S.prog[k].useW||{})[wk||weekKey()];return u||{}}
+function trackUse(used){if(!used||!used.f)return;const p=P(),wk=weekKey();p.useW=p.useW||{};const u=p.useW[wk]=p.useW[wk]||{};
+  const key=used.f+(used.q?'_'+used.q:'');u[key]=(u[key]||0)+1;
+  const ks=Object.keys(p.useW).sort();while(ks.length>8)delete p.useW[ks.shift()];save()}
+const picsThisWeek=k=>{const u=useOf(k);return (u.picture_medium||0)+(u.picture_high||0)};
+const picsLeftWeek=()=>Math.max(0,PICS_PER_WEEK-picsThisWeek(who));
 function logQ(q,a,kind,n){const l=P().aiLog||[];l.unshift({t:Date.now(),n:n??LESSONS[L].n,q,a,kind});P().aiLog=l.slice(0,40);save()}
 const arVoice=()=>{try{const vs=speechSynthesis.getVoices().filter(v=>/^ar/i.test(v.lang));return vs.find(v=>/google|natural|online/i.test(v.name))||vs[0]||null}catch(e){return null}};
 const noEmoji=t=>String(t).replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}️‍⃣]/gu,' ').replace(/\s+/g,' ').replace(/ ([،.!؟])/g,'$1').trim();
@@ -1063,6 +1073,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAsk()});
 $('ask-form').onsubmit=e=>{e.preventDefault();ask($('ask-q').value)};
 $('ask-q').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask($('ask-q').value)}});
 
+const USE_ROWS=[['picture_medium','🖼️ صور مفصّلة (المضمونة أسبوعياً)'],['picture_low','🖼️ صور إضافية أبسط'],['drawing_low','🎨 رسومات نبيه'],['cover_low','📖 أغلفة القصص'],['drawing_svg','🎨 رسومات بالأشكال'],['cover_svg','📖 أغلفة بالأشكال'],['story','✍️ جمل القصص'],['chat','💬 أسئلة لنبيه'],['mic','🎤 الميكروفون']];
+function useTable(){const ks=['s','b'],u=ks.map(k=>useOf(k));const rows=USE_ROWS.filter(([f])=>u.some(x=>x[f]));
+  return `<details><summary>استعمال نبيه هذا الأسبوع</summary><p class="note">يبدأ الأسبوع يوم الاثنين. لكل طفل ${AR(PICS_PER_WEEK)} صور مفصّلة في الأسبوع، وبعدها تأتي الصور أبسط قليلاً.</p>${rows.length?`<table class="usetbl"><tr><th></th>${ks.map(k=>`<th>${esc(S.profiles[k].name)}</th>`).join('')}</tr>${rows.map(([f,l])=>`<tr><td>${l}</td>${u.map(x=>`<td>${AR(x[f]||0)}</td>`).join('')}</tr>`).join('')}</table>`:'<p class="note">لا استعمال بعد هذا الأسبوع.</p>'}</details>`}
 const KIND={off_topic:'خارج الموضوع',personal:'معلومة شخصية',refused:'رُفض',not_for_kids:'غير مناسب'};
 function renderAiCard(){
   const c=$('p-ai');const a=S.ai;
@@ -1077,7 +1090,7 @@ function renderAiCard(){
    <label>الرقم السري للعائلة<input type="password" id="ai-pin" dir="ltr" inputmode="numeric" autocomplete="new-password" value="${esc(a.pin)}" placeholder="اكتب الرقم السري"></label>
    <p class="note">الرقم مخفي ولا يظهر بعد حفظه. لتغييره امسحه واكتب الجديد، ثم اضغط «اختبر الاتصال» للتأكد منه.</p>
    <label>عدد مرّات استعمال نبيه لكل طفل في اليوم (أسئلة ورسومات وجمل القصص) <select id="ai-limit">${[5,10,15,20,30,50].map(n=>`<option value="${n}" ${n===a.limit?'selected':''}>${AR(n)}</option>`).join('')}</select></label>
-   <div class="row"><button class="btn" id="ai-test">جرّب الاتصال</button><span class="note" id="ai-msg" aria-live="polite"></span></div>${logs}`;
+   <div class="row"><button class="btn" id="ai-test">جرّب الاتصال</button><span class="note" id="ai-msg" aria-live="polite"></span></div>${useTable()}${logs}`;
   const upd=()=>{a.on=$('ai-on').checked;a.url=$('ai-url').value.trim();a.pin=$('ai-pin').value.trim();a.limit=+$('ai-limit').value;save()};
   ['ai-on','ai-url','ai-pin','ai-limit'].forEach(id=>$(id).addEventListener('change',upd));
   ['ai-url','ai-pin'].forEach(id=>$(id).addEventListener('input',upd));
@@ -1087,7 +1100,7 @@ function renderAiCard(){
     m.textContent='جارٍ الاتصال…';
     try{const r=await fetch(a.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin:a.pin,check:true})});
       const jj=r.ok?await r.json().catch(()=>({})):{};
-      m.textContent=r.ok?'✅ الاتصال يعمل.'+(jj.image?' 🖼️ الصور الحقيقية مفعّلة.':' (الصور الحقيقية غير مفعّلة: أضيفوا مفتاح OpenAI في الخادم لتفعيلها.)'):r.status===401?'❌ الرقم السري غير صحيح.':'❌ الخادم ردّ بخطأ ('+r.status+').'}
+      m.textContent=r.ok?'✅ الاتصال يعمل.'+(jj.image?' 🖼️ الصور الحقيقية مفعّلة.':' (الصور الحقيقية غير مفعّلة: أضيفوا مفتاح الصور في الخادم لتفعيلها.)'):r.status===401?'❌ الرقم السري غير صحيح.':'❌ الخادم ردّ بخطأ ('+r.status+').'}
     catch(e){m.textContent='❌ لم أستطع الوصول إلى الخادم. تأكّد من العنوان.'}};
 }
 
@@ -1096,7 +1109,7 @@ let toastT;
 function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,Math.max(3200,msg.length*70))}
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{try{speechSynthesis.cancel()}catch(e){}openMap()});
 const left=()=>Math.max(0,S.ai.limit-usedToday(who));
-const svgSrc=svg=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+const svgSrc=svg=>/^data:image\//.test(svg)?svg:'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 const picSrc=d=>d.img||svgSrc(d.svg);
 // shrink a generated picture so the gallery fits in the device's storage
 function shrinkPic(src,size=512){return new Promise(res=>{const im=new Image();im.onload=()=>{try{const c=document.createElement('canvas');c.width=c.height=size;c.getContext('2d').drawImage(im,0,0,size,size);res(c.toDataURL('image/jpeg',0.82))}catch(e){res(src)}};im.onerror=()=>res(src);im.src=src})}
@@ -1106,7 +1119,7 @@ async function aiCall(body){
   if(!navigator.onLine)return {fail:'أحتاج إلى الإنترنت. اطلب من بابا أو ماما تشغيله. 📶'};
   try{const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),90000);
     const r=await fetch(S.ai.url,{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify(Object.assign({pin:S.ai.pin,level:who},body))});
-    clearTimeout(tm);const j=await r.json().catch(()=>({}));
+    clearTimeout(tm);const j=await r.json().catch(()=>({}));if(j&&j.used)trackUse(j.used);
     if(r.status===401)return {fail:'الرقم السري غير صحيح. اطلب من بابا أو ماما ضبطه في ركن الأهل.'};
     if(j.error==='image_key')return {fail:'مفتاح مولّد الصور غير صحيح. اطلب من بابا أو ماما التحقّق منه في الخادم. 🔑'};
     if(!r.ok)return {fail:'حدثت مشكلة صغيرة. جرّب بعد قليل. 🔧'};
@@ -1196,7 +1209,7 @@ function paintStudio(){
   const kind=P().drawKind==='image'?'image':'svg';
   c.innerHTML=`<div class="chips"><div class="g"><b>من يرسم؟</b><div class="opts" id="d-kind"><button data-k="svg" aria-pressed="${kind==='svg'}">🎨 رسم نبيه</button><button data-k="image" aria-pressed="${kind==='image'}">🖼️ مولّد الصور</button></div></div></div>
    <p>${kind==='svg'
-     ?(who==='s'?'اختر من كل صف، ثم اضغط «ارسم!». نبيه يرسم بالأشكال والألوان.':'اختر المكوّنات، وأضف تفاصيلك الخاصة. نبيه يرسم بالأشكال والخطوط (SVG)، كأنه يرسم بالمسطرة والفرجار.')
+     ?(who==='s'?'اختر من كل صف، ثم اضغط «ارسم!». نبيه يرسم لك رسمة كرتونية بسيطة بألوان زاهية.':'اختر المكوّنات، وأضف تفاصيلك الخاصة. نبيه يرسم رسمة كرتونية بسيطة وسريعة. أمّا «مولّد الصور» فيصنع صورة مفصّلة تشبه الحقيقية.')
      :(who==='s'?'مولّد الصور يصنع صورة تشبه الحقيقية! يبدأ من نقاط عشوائية مثل الثلج على التلفاز، ثم يرتّبها خطوة خطوة حتى تظهر صورتك.':'مولّد الصور (ذكاء اصطناعي متخصّص بالصور) يبدأ من الضوضاء العشوائية ويزيلها خطوة بعد خطوة، ووصفك يوجّهه، كما رأيت في الدرس ٤. كلما كان وصفك أدقّ، جاءت الصورة أقرب لما في خيالك.')}</p>
    ${canMic()?`<div class="row" style="justify-content:center;align-items:center"><button class="btn micbtn" id="d-mic">🎤 ${who==='s'?'قل ما تريد':'قل وصفك بصوتك'}</button><span class="note" id="d-micmsg" aria-live="polite"></span></div>`:''}
    <div class="chips">${DRAW[who].map((g,gi)=>`<div class="g"><b>${g.l}</b><div class="opts" data-g="${gi}">${g.o.map((o,oi)=>`<button aria-pressed="${oi===0}">${o}</button>`).join('')}</div></div>`).join('')}
@@ -1213,7 +1226,7 @@ function paintStudio(){
   if($('d-mic'))wireMic($('d-mic'),$('d-micmsg'),text=>{$('d-extra').value=voiceText=text;c.dataset.voice='1';upd();
     $('d-micmsg').textContent=who==='s'?'سمعتك! 👂 اضغط «ارسم».':'سمعتك! 👂 الوصف الآن من كلامك. يمكنك تعديله، أو اضغط أي اختيار لتعود إلى الاختيارات.'});
   $('d-kind').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(drawing)return;P().drawKind=b.dataset.k;save();SFX.tap();paintStudio()});
-  const paintLeftD=()=>{const n=left();$('d-left').textContent=n?`بقي لك ${AR(n)} اليوم`:'انتهت محاولات اليوم. نلتقي غداً! 🌙';$('d-go').disabled=!n||drawing};
+  const paintLeftD=()=>{const n=left(),w=picsLeftWeek();$('d-left').textContent=n?`بقي لك ${AR(n)} اليوم`+(kind==='image'?(w?` ، و${AR(w)} صور مفصّلة هذا الأسبوع`:' ، والصور بعد ذلك أبسط قليلاً حتى الأسبوع القادم'):''):'انتهت محاولات اليوم. نلتقي غداً! 🌙';$('d-go').disabled=!n||drawing};
   paintLeftD();
   const go=async()=>{
     if(drawing||!left())return;drawing=true;const prompt=drawPrompt(c);paintLeftD();
@@ -1221,10 +1234,10 @@ function paintStudio(){
     box.innerHTML=kind==='svg'?`<div class="wait"><span class="pencil" aria-hidden="true">✏️</span>نبيه يرسم الآن…<br><small>قد يأخذ ذلك نصف دقيقة</small></div>`
       :`<div class="wait"><span class="pencil" aria-hidden="true">🌫️</span>مولّد الصور يزيل الضوضاء خطوة خطوة…<br><small>قد يأخذ ذلك دقيقة</small></div>`;
     box.scrollIntoView({behavior:'smooth',block:'center'});
-    const j=await aiCall({mode:kind==='svg'?'draw':'image',prompt});
-    if(j.image){const img=await shrinkPic(j.image);drawing=false;addUse();lastDraw={t:Date.now(),prompt,img};logQ('🖼️ '+prompt,'(صورة)','answer','الاستوديو');
+    const j=await aiCall(kind==='svg'?{mode:'draw',prompt}:{mode:'image',prompt,tier:picsLeftWeek()?'week':'extra'});
+    if(j.image){const img=await shrinkPic(j.image);drawing=false;addUse();lastDraw={t:Date.now(),prompt,img};logQ((kind==='svg'?'🎨 ':'🖼️ ')+prompt,kind==='svg'?'(رسمة)':'(صورة)','answer','الاستوديو');
       box.innerHTML=`<img alt="صورة من مولّد الصور: ${esc(prompt)}" src="${img}">`;
-      $('d-tag').textContent='🤖 صنعها الذكاء الاصطناعي. ليست صورة حقيقية، ولا يوجد هذا الشيء في الواقع.';$('d-tag').hidden=false;
+      $('d-tag').textContent=kind==='svg'?'🤖 رسمها نبيه، وهو ذكاء اصطناعي. ليست صورة حقيقية.':'🤖 صنعها الذكاء الاصطناعي. ليست صورة حقيقية، ولا يوجد هذا الشيء في الواقع.';$('d-tag').hidden=false;
       $('d-acts').hidden=false;$('d-save').disabled=false;$('d-save').textContent='💾 احفظ في معرضي';SFX.ok()}
     else if(j.svg){drawing=false;addUse();lastDraw={t:Date.now(),prompt,svg:j.svg};logQ('🎨 '+prompt,'(رسمة)','answer','الاستوديو');
       box.innerHTML=`<img alt="رسمة نبيه: ${esc(prompt)}" src="${svgSrc(j.svg)}">`;$('d-acts').hidden=false;$('d-save').disabled=false;$('d-save').textContent='💾 احفظ في معرضي';SFX.ok()}
@@ -1323,8 +1336,9 @@ function finishedStory(){
 async function drawCover(i,btn,msg){
   if(!left()){msg.textContent='انتهت محاولات اليوم.';return}
   const b=P().books[i];btn.disabled=true;btn.textContent='✏️ نبيه يرسم…';
-  const j=await aiCall({mode:'draw',prompt:`غلاف قصة أطفال بعنوان «${b.title}»: ${b.setup}`});
+  const j=await aiCall({mode:'draw',cover:true,prompt:`غلاف قصة أطفال بعنوان «${b.title}»: ${b.setup}`});
   if(!j.fail)addUse();
+  if(j.image)j.svg=await shrinkPic(j.image,320);
   if(j.svg){b.cover=j.svg;save();btn.textContent='✓ رُسم الغلاف';SFX.ok();readBook(i,0)}else{btn.disabled=false;btn.textContent='🎨 ارسم غلافاً';msg.textContent=j.fail||j.answer||'حدثت مشكلة.'}
 }
 function readBook(i,pg){
