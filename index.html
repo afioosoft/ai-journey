@@ -253,6 +253,12 @@ details{border:2px solid var(--line);border-radius:16px;padding:10px 14px}
 details summary{font-weight:700;cursor:pointer}
 details ol{margin:8px 0 0;padding-inline-start:1.3em}
 
+.rp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+#rp-kids{display:flex;gap:8px;flex-wrap:wrap}#rp-kids button{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:6px 14px;min-height:44px;font-weight:700}#rp-kids button[aria-pressed=true]{border-color:var(--learn);background:var(--learn-bg)}
+.rp-tile{background:var(--plain-bg);color:var(--ink);border:2px solid var(--line);border-radius:18px;padding:10px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}
+.rp-tile span{font-size:1.6rem}.rp-tile b{font-family:var(--display);font-size:1.5rem}.rp-tile small{opacity:.75;font-size:.85rem}
+.rp-pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;margin-top:6px}.rp-pics img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;background:var(--line)}
+.rp-week{align-items:center}.rp-tips ul{margin:6px 0 0;padding-inline-start:20px}#p-report .tag{display:inline-block;margin:2px;background:var(--line);color:var(--ink);font-size:.9rem;padding:2px 8px}
 .usetbl{width:100%;border-collapse:collapse;margin:8px 0}.usetbl th,.usetbl td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:start}.usetbl td:not(:first-child),.usetbl th:not(:first-child){text-align:center}
 /* certificate */
 .cert{background:var(--card);border:6px double var(--sun);border-radius:28px;padding:clamp(22px,6vw,44px);text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
@@ -410,6 +416,7 @@ ul.recap li::before{content:'✓ ';color:var(--learn)}
       <button class="iconbtn" id="p-back" aria-label="رجوع">→</button>
       <h1 class="grow">ركن الأهل</h1>
     </div>
+    <div class="pcard" id="p-report" style="margin-bottom:16px"></div>
     <div id="p-kids"></div>
     <div class="pcard" id="p-ai"></div>
     <div class="pcard">
@@ -882,6 +889,7 @@ const W={
     else{SFX.no();el.classList.remove('try');void el.offsetWidth;el.classList.add('try')}});
    box.appendChild(el)});upd()},
  quiz:(s,card)=>card.querySelectorAll('.choices button').forEach(b=>b.onclick=()=>{const fb=card.querySelector('#feedback');
+   if(!card.dataset.noted){card.dataset.noted='1';noteAnswer(b.dataset.ok==='1','quiz',LESSONS[L].n)}
    if(b.dataset.ok==='1'){b.classList.add('right');fb.style.color='var(--learn)';fb.textContent='صحيح! أحسنت 👏';SFX.ok()}
    else{b.classList.add('no');fb.style.color='var(--wrong)';fb.textContent='فكّر مرة أخرى وجرّب جواباً آخر.';SFX.no()}}),
  nextword:(s,card)=>{const rounds=T(s.rounds);let answered=0;
@@ -944,7 +952,7 @@ const W={
  list:(s,card)=>{const saved=P().todo[LESSONS[L].n]||[];
   card.querySelectorAll('ol.todo input').forEach(c=>{const i=+c.dataset.i;c.checked=!!saved[i];c.closest('li').classList.toggle('done',c.checked);
    c.onchange=()=>{c.closest('li').classList.toggle('done',c.checked);const a=P().todo[LESSONS[L].n]||[];a[i]=c.checked;P().todo[LESSONS[L].n]=a;save();if(c.checked)SFX.ok()}})},
- star:()=>{const n=LESSONS[L].n;P().stars[n]=Date.now();save();SFX.star();confetti();setTimeout(checkBadges,1200)}
+ star:()=>{const n=LESSONS[L].n;const fresh=!P().stars[n];P().stars[n]=Date.now();if(fresh){const w=wkAct();if(!w.lessons.includes(n))w.lessons.push(n)}save();SFX.star();confetti();setTimeout(checkBadges,1200)}
 };
 
 function renderStep(){
@@ -973,6 +981,49 @@ $('next').onclick=()=>{
 
 /* ---------- parents corner ---------- */
 const AVS=['🦁','🐯','🐼','🦊','🐸','🐙','🦄','🐢','🐧','🐝','🚀','⚽','🌈','🦋'];
+/* ---------- weekly report for parents (like a school progress note, on this device only) ---------- */
+let rep={k:null,back:0};
+const KIDS=()=>['s','b'];
+function weekStart(back){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7)-7*back);return d}
+function renderReport(){
+  const ks=KIDS();if(!ks.includes(rep.k))rep.k=ks[0];const k=rep.k,p=S.prog[k],pr=S.profiles[k];
+  const st=weekStart(rep.back),en=new Date(st);en.setDate(en.getDate()+7);const wk=weekKey(st);
+  const w=(p.wk||{})[wk]||{lessons:[],qr:0,qt:0,dr:0,dt:0,days:[]};
+  const inWk=t=>t>=st.getTime()&&t<en.getTime();
+  const pics=(p.gallery||[]).filter(d=>inWk(d.t)),books=(p.books||[]).filter(b=>inWk(b.t));
+  const u=useOf(k,wk),aiN=Object.values(u).reduce((a,b)=>a+b,0);
+  const ls=w.lessons.map(n=>LESSONS.find(l=>l.n===n)).filter(Boolean);
+  const pct=(a,b)=>b?AR(Math.round(100*a/b))+'٪':'—';
+  const fmt=d=>d.toLocaleDateString('ar-EG',{day:'numeric',month:'long'});
+  const last=new Date(en);last.setDate(last.getDate()-1);
+  const lv=skillOf(k);
+  const tips=[];
+  if(!ls.length)tips.push('لا دروس منتهية هذا الأسبوع. جرّبوا درساً واحداً قصيراً معاً (١٠ دقائق تكفي).');
+  else tips.push(`${AR(ls.length)} ${ls.length===1?'درس منتهٍ':ls.length===2?'درسان منتهيان':'دروس منتهية'} هذا الأسبوع. اطلبوا من ${esc(pr.name)} شرح ${'«'+ls[ls.length-1].title+'»'} لكم بكلمات بسيطة.`);
+  const miss=(p.missed||[]).slice(-2).map(n=>LESSONS.find(l=>l.n===n)).filter(Boolean);
+  if(miss.length)tips.push('راجعوا معاً: '+miss.map(l=>'«'+l.title+'»').join(' و')+'، ففي بعض الأسئلة أخطاء.');
+  if(w.days.length<3)tips.push('التحدّي اليومي ٣ أسئلة فقط. شجّعوا على حلّه كل يوم للحفاظ على السلسلة 🔥.');
+  const kidTabs=ks.length>1?`<div class="opts" role="tablist" id="rp-kids">${ks.map(x=>`<button role="tab" data-k="${x}" aria-pressed="${x===k}">${S.profiles[x].av} ${esc(S.profiles[x].name)}</button>`).join('')}</div>`:'';
+  $('p-report').innerHTML=`<h2>📊 التقرير الأسبوعي</h2>${kidTabs}
+   <div class="row rp-week"><button class="iconbtn" id="rp-prev" aria-label="الأسبوع السابق" ${rep.back>=7?'disabled':''}>→</button><b class="grow center">${rep.back===0?'هذا الأسبوع':rep.back===1?'الأسبوع الماضي':'قبل '+AR(rep.back)+' أسابيع'}<br><small class="note">${fmt(st)} إلى ${fmt(last)}</small></b><button class="iconbtn" id="rp-next" aria-label="الأسبوع التالي" ${rep.back===0?'disabled':''}>←</button></div>
+   <div class="rp-grid">
+    <div class="rp-tile"><span>🌟</span><b>${AR(ls.length)}</b><small>دروس منتهية</small></div>
+    <div class="rp-tile"><span>⭐</span><b>${AR(starCount(k))}</b><small>كل النجوم (من ${AR(LESSONS.length)})</small></div>
+    <div class="rp-tile"><span>🧩</span><b>${pct(w.qr,w.qt)}</b><small>أسئلة الدروس من أول محاولة (${AR(w.qr)} من ${AR(w.qt)})</small></div>
+    <div class="rp-tile"><span>🔥</span><b>${AR(w.days.length)}</b><small>أيام التحدّي اليومي من ٧ (${pct(w.dr,w.dt)} صحيح)</small></div>
+    <div class="rp-tile"><span>🎨</span><b>${AR(pics.length)}</b><small>رسومات وصور محفوظة</small></div>
+    <div class="rp-tile"><span>📖</span><b>${AR(books.length)}</b><small>قصص مكتوبة</small></div>
+   </div>
+   ${ls.length?`<div><b>الدروس:</b> ${ls.map(l=>`<span class="tag">${l.icon} ${AR(l.n)}. ${esc(l.title)}</span>`).join(' ')}</div>`:''}
+   ${ls.length?`<div><b>📚 كلمات جديدة:</b> ${ls.map(l=>FACTS[l.n]?`<span class="tag">${FACTS[l.n].word.w}</span>`:'').join(' ')}</div>`:''}
+   ${pics.length?`<div><b>🎨 من المعرض:</b><div class="rp-pics">${pics.slice(0,8).map(d=>`<img alt="${esc(d.prompt||'')}" src="${picSrc(d)}">`).join('')}</div></div>`:''}
+   ${books.length?`<div><b>📖 القصص:</b> ${books.map(b=>`<span class="tag">${esc(b.title||'قصتي')} (${AR(b.pages.length)} صفحات)</span>`).join(' ')}</div>`:''}
+   <div><b>🤖 استعمال نبيه:</b> ${AR(aiN)} مرّة${aiN?` ، منها ${AR((u.picture_medium||0)+(u.picture_high||0))} صور مفصّلة من ${AR(PICS_PER_WEEK)}`:''}.</div>
+   <div><b>📈 مستوى الأسئلة الآن:</b> ${SKILL_AR[lv]} <small class="note">يتغيّر وحده حسب آخر الإجابات: ${lv==='easy'?'خياران فقط في كل سؤال وأسئلة صح وخطأ أكثر.':lv==='hard'?'سؤال مراجعة إضافي في الدروس، و٤ أسئلة في التحدّي اليومي من دروس فيها أخطاء.':'أسئلة عادية.'}</small></div>
+   <div class="rp-tips"><b>💡 لكم هذا الأسبوع:</b><ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;
+  $('p-report').querySelectorAll('#rp-kids button').forEach(b=>b.onclick=()=>{rep.k=b.dataset.k;renderReport()});
+  $('rp-prev').onclick=()=>{rep.back++;renderReport()};$('rp-next').onclick=()=>{rep.back=Math.max(0,rep.back-1);renderReport()};
+}
 function openParents(){
   $('p-kids').innerHTML=['s','b'].map(k=>{const p=S.profiles[k];return `<div class="pcard" data-k="${k}" style="margin-bottom:16px">
    <h2>${k==='s'?'الطفل الصغير (٦ سنوات)':'الطفل الكبير (١٠ سنوات)'}</h2>
@@ -984,7 +1035,7 @@ function openParents(){
    c.querySelector('[data-name]').oninput=e=>{S.profiles[k].name=e.target.value.trim()||DEF.profiles[k].name;save()};
    c.querySelectorAll('[data-av]').forEach(b=>b.onclick=()=>{S.profiles[k].av=b.dataset.av;save();c.querySelectorAll('[data-av]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
    c.querySelector('[data-reset]').onclick=()=>{if(confirm('هل تريد مسح نجوم '+S.profiles[k].name+' وتقدّمه؟')){S.prog[k]={stars:{},at:{},todo:{}};save();openParents()}}});
-  renderAiCard();
+  renderReport();renderAiCard();
   show('parents');route('#parents');
 }
 $('to-parents').onclick=openParents;
@@ -1013,6 +1064,20 @@ function trackUse(used){if(!used||!used.f)return;const p=P(),wk=weekKey();p.useW
   const ks=Object.keys(p.useW).sort();while(ks.length>8)delete p.useW[ks.shift()];save()}
 const picsThisWeek=k=>{const u=useOf(k);return (u.picture_medium||0)+(u.picture_high||0)};
 const picsLeftWeek=()=>Math.max(0,PICS_PER_WEEK-picsThisWeek(who));
+/* weekly activity (for the parents' weekly report) and recent answers (for adaptive difficulty) */
+function wkAct(k,wk){const p=S.prog[k||who];p.wk=p.wk||{};const key=wk||weekKey();
+  const w=p.wk[key]=p.wk[key]||{lessons:[],qr:0,qt:0,dr:0,dt:0,days:[]};
+  const ks=Object.keys(p.wk).sort();while(ks.length>8)delete p.wk[ks.shift()];return w}
+function noteAnswer(ok,src,n){const p=P(),w=wkAct();
+  if(src==='daily'){w.dt++;if(ok)w.dr++}else{w.qt++;if(ok)w.qr++}
+  p.recent=(p.recent||[]).concat(ok?1:0).slice(-12);
+  if(!ok&&n){p.missed=(p.missed||[]).filter(x=>x!==n);p.missed.push(n);p.missed=p.missed.slice(-6)}
+  save()}
+/* level from the last answers: easy (<50% right), normal, hard (80%+), after at least 5 answers */
+function skillOf(k){const r=(S.prog[k||who].recent||[]);if(r.length<5)return 'normal';const a=r.reduce((x,y)=>x+y,0)/r.length;return a>=0.8?'hard':a<0.5?'easy':'normal'}
+const SKILL_AR={easy:'أسهل 🌱',normal:'عادي 🌿',hard:'متقدّم 🌳'};
+/* easy: keep the right answer and one wrong one */
+function easyChoices(ch){if(skillOf()!=='easy'||ch.length<=2)return ch;const right=ch.filter(c=>+c[1]===1),wrong=shuffle(ch.filter(c=>+c[1]!==1));return right.slice(0,1).concat(wrong.slice(0,1))}
 function logQ(q,a,kind,n){const l=P().aiLog||[];l.unshift({t:Date.now(),n:n??LESSONS[L].n,q,a,kind});P().aiLog=l.slice(0,40);save()}
 const arVoice=()=>{try{const vs=speechSynthesis.getVoices().filter(v=>/^ar/i.test(v.lang));return vs.find(v=>/google|natural|online/i.test(v.name))||vs[0]||null}catch(e){return null}};
 const noEmoji=t=>String(t).replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}️‍⃣]/gu,' ').replace(/\s+/g,' ').replace(/ ([،.!؟])/g,'$1').trim();
@@ -1374,10 +1439,18 @@ function dailyQuestions(){
       if(st.t==='quizset')T(st.qs).forEach(([q,c])=>qs.push({q,c,n:l.n}));
       if(st.t==='sort')st.items.forEach(([pic,name,ans])=>qs.push({q:`${pic} ${name}: ${T(st.title).replace(/^لعبة: /,'')}`,c:st.labels.map((lb,k)=>[lb.t.split(':')[0],k===ans?1:0]),n:l.n}));
     })});
-  const r=seeded(today()+who);const pick=[];const cp=qs.slice();
-  while(pick.length<3&&cp.length)pick.push(cp.splice(Math.floor(r()*cp.length),1)[0]);
+  const r=seeded(today()+who);const pick=[];let cp=qs.slice();const lv=skillOf();
+  // easy: prefer true/false questions; hard: 4 questions, first from lessons the child missed lately
+  if(lv==='easy'){const tf=cp.filter(q=>q.c.length===2);if(tf.length>=3)cp=tf}
+  const want=lv==='hard'?4:3;
+  if(lv==='hard'){const miss=(P().missed||[]).slice().reverse();for(const n of miss){if(pick.length>=2)break;const m=cp.filter(q=>q.n===n);if(m.length){const q=m[Math.floor(r()*m.length)];pick.push(q);cp.splice(cp.indexOf(q),1)}}}
+  while(pick.length<want&&cp.length)pick.push(cp.splice(Math.floor(r()*cp.length),1)[0]);
   return pick;
 }
+/* one question from an earlier finished lesson, for the "hard" level */
+function reviewQuestion(curN){const done=LESSONS.filter(l=>P().stars[l.n]&&l.n!==curN);if(!done.length)return null;
+  const l=done[Math.floor(Math.random()*done.length)];const st=l.steps.find(x=>x.t==='quizset'&&(!x.only||x.only===who));if(!st)return null;
+  const qq=T(st.qs);const q=qq[Math.floor(Math.random()*qq.length)];return [q[0],q[1],q[2]||'',l.title]}
 function openDaily(){show('daily');route('#'+who+'/daily');runDaily(false)}
 function runDaily(practice){
   const c=$('daily'),qs=dailyQuestions(),d=P().daily||{};
@@ -1390,9 +1463,10 @@ function runDaily(practice){
     if(i>=qs.length)return finish();
     const q=qs[i];let wrong=false;
     c.innerHTML=`<div class="qnum">السؤال ${AR(i+1)} من ${AR(qs.length)} ، من الدرس ${AR(q.n)}</div><p class="lead">${q.q}</p>
-     <div class="choices">${shuffle(q.c).map(([a,ok])=>`<button data-ok="${ok}">${a}</button>`).join('')}</div><div class="feedback" id="dy-fb" aria-live="polite"></div>`;
+     <div class="choices">${shuffle(easyChoices(q.c)).map(([a,ok])=>`<button data-ok="${ok}">${a}</button>`).join('')}</div><div class="feedback" id="dy-fb" aria-live="polite"></div>`;
+    let noted=false;
     c.querySelectorAll('.choices button').forEach(b=>b.onclick=()=>{
-      const fb=$('dy-fb');
+      const fb=$('dy-fb');if(!noted){noted=true;noteAnswer(b.dataset.ok==='1','daily',q.n)}
       if(b.dataset.ok==='1'){b.classList.add('right');fb.style.color='var(--learn)';fb.textContent='صحيح! 👏';SFX.ok();
         c.querySelectorAll('.choices button').forEach(x=>x.disabled=true);
         const nb=document.createElement('button');nb.className='btn sun';nb.textContent=i<qs.length-1?'السؤال التالي ←':'النتيجة ←';nb.style.alignSelf='flex-start';nb.onclick=()=>{i++;step()};c.appendChild(nb)}
@@ -1401,7 +1475,7 @@ function runDaily(practice){
   const finish=()=>{
     if(!practice){const p=P();const dd=p.daily||{};
       dd.streak=dd.last===yesterday()?(dd.streak||0)+1:dd.last===today()?(dd.streak||1):1;dd.last=today();dd.total=(dd.total||0)+1;dd.best=Math.max(dd.best||0,dd.streak);
-      if(!mistakes)dd.perfect=true;p.daily=dd;save()}
+      if(!mistakes)dd.perfect=true;p.daily=dd;const w=wkAct();if(!w.days.includes(today()))w.days.push(today());save()}
     const dd=P().daily||{};confetti();SFX.star();
     c.innerHTML=`<div class="reader"><div style="font-size:3.5rem">${mistakes?'🏅':'🎯'}</div><div class="streak">${mistakes?'أحسنت! أنهيت التحدّي':'رائع! بلا أي خطأ'}</div>
      ${practice?'<p>كان هذا تدريباً.</p>':`<div class="streak">🔥 ${AR(dd.streak)} ${dd.streak===1?'يوم':'أيام'} متتالية</div>`}</div>
@@ -1796,12 +1870,14 @@ Object.assign(W,{
    box.querySelector('[data-sn]').onclick=()=>{if(i<pages.length-1){i++;SFX.tap();paint()}};
    box.querySelector('[data-sr]').onclick=e=>readAloud(txt,e.currentTarget)};
   paint()},
- quizset:(s,card)=>{const qs=T(s.qs),box=card.querySelector('#qsbox');let i=0,first=0;
+ quizset:(s,card)=>{const qs=T(s.qs).slice(),box=card.querySelector('#qsbox');let i=0,first=0;
+  if(skillOf()==='hard'){const b=reviewQuestion(LESSONS[L].n);if(b)qs.push(b)}
   const q=()=>{if(i>=qs.length){box.innerHTML=`<p class="lead center">انتهيت! 🎉</p><p class="center score">أجبت صحيحاً من أول محاولة: ${AR(first)} من ${AR(qs.length)}</p>`;SFX.star();return}
-   const [qq,ch,why]=qs[i];let miss=false;
-   box.innerHTML=`<p class="score">السؤال ${AR(i+1)} من ${AR(qs.length)}</p><p class="lead">${qq}</p>
-    <div class="choices">${shuffle(ch).map(([a,ok])=>`<button data-ok="${ok}">${a}</button>`).join('')}</div><div class="feedback" aria-live="polite"></div>`;
+   const [qq,ch,why,bonus]=qs[i];let miss=false,noted=false;
+   box.innerHTML=`<p class="score">${bonus?'⭐ سؤال إضافي للأبطال: مراجعة من '+bonus:'السؤال '+AR(i+1)+' من '+AR(qs.length)}</p><p class="lead">${qq}</p>
+    <div class="choices">${shuffle(easyChoices(ch)).map(([a,ok])=>`<button data-ok="${ok}">${a}</button>`).join('')}</div><div class="feedback" aria-live="polite"></div>`;
    box.querySelectorAll('.choices button').forEach(b=>b.onclick=()=>{const fb=box.querySelector('.feedback');
+    if(!noted){noted=true;noteAnswer(b.dataset.ok==='1','quiz',LESSONS[L].n)}
     if(b.dataset.ok==='1'){if(!miss)first++;b.classList.add('right');SFX.ok();box.querySelectorAll('.choices button').forEach(x=>x.disabled=true);
      fb.style.color='';fb.innerHTML=`<div class="why"><b style="color:var(--learn)">صحيح! 👏</b> ${why}</div>`;
      const nb=document.createElement('button');nb.className='btn sun';nb.style.alignSelf='flex-start';nb.textContent=i<qs.length-1?'السؤال التالي ←':'النتيجة ←';
