@@ -1,0 +1,13 @@
+# Used by the GitHub automation that deploys the helper to Cloudflare.
+# It deploys the ready-made bundle (worker.js), the same file you used to paste by hand.
+name = "ai-journey-helper"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+# Keep any settings added in the Cloudflare dashboard (ANSWER_MODEL, STORY_MODEL, IMAGE_QUALITY, ...).
+# Secrets (API keys, FAMILY_PIN) are never touched by a deploy.
+keep_vars = true
+
+[observability]
+enabled = true

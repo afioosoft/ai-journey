@@ -78,3 +78,16 @@ child says what they want, the voice is turned into Arabic words
 `LISTEN_MODEL`), and the words appear in the description box. The recording is
 sent once and not stored. The browser asks for microphone permission the
 first time.
+
+## Automatic updates (no more copy and paste)
+
+When a change to `helper/worker.js` is merged into `main`, GitHub deploys it to the Cloudflare Worker
+`ai-journey-helper` by itself (`.github/workflows/deploy-helper.yml`). Merging the pull request is the approval.
+You can also run it by hand: GitHub → Actions → "Deploy helper to Cloudflare" → Run workflow.
+
+It needs two repository secrets (GitHub → Settings → Secrets and variables → Actions):
+- `CLOUDFLARE_API_TOKEN`: a Cloudflare API token with **Workers Scripts: Edit** (the "Edit Cloudflare Workers" template)
+- `CLOUDFLARE_ACCOUNT_ID`: your Cloudflare account ID
+
+Secrets stored in Cloudflare (API keys, `FAMILY_PIN`) are never changed by a deploy, and settings added in the
+dashboard are kept (`keep_vars = true` in `helper/wrangler.toml`).
