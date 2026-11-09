@@ -1,0 +1,395 @@
+{
+  "about": "de version of monthly.json, made by i18n/build.py from the translations in i18n/de.json. Edit monthly.json, then run the build.",
+  "items": [
+    {
+      "id": "2026-11-translate",
+      "month": "2026-11",
+      "kind": "mini",
+      "icon": "🌍",
+      "title": "Wie übersetzt KI?",
+      "sub": {
+        "s": "Eine kleine Lektion über Wörter und Sprachen",
+        "b": "Eine kurze Lektion: maschinelle Übersetzung"
+      },
+      "pages": [
+        {
+          "ic": "🗣️",
+          "s": "Auf der Welt gibt es viele Sprachen: Arabisch, Deutsch, Chinesisch und viele mehr. Manchmal wollen wir jemanden verstehen, der unsere Sprache nicht spricht.",
+          "b": "Auf der Welt gibt es mehr als siebentausend Sprachen. Maschinelle Übersetzung hilft uns, Geschriebenes oder Gesprochenes in einer Sprache, die wir nicht können, in Sekunden zu verstehen."
+        },
+        {
+          "ic": "📚",
+          "s": "KI hat riesig viele Sätze gelesen, die in zwei Sprachen zusammen geschrieben sind, wie ein Buch, in dem jede Seite in einer Sprache ist und daneben in einer anderen.",
+          "b": "Ein Übersetzungsmodell hat aus Millionen Sätzen gelernt, die schon übersetzt waren: der Satz in einer Sprache und daneben derselbe Satz in einer anderen. Das sind die Trainingsdaten, wie in Lektion 2."
+        },
+        {
+          "ic": "🧩",
+          "s": "Es übersetzt nicht Wort für Wort. Es versteht zuerst den ganzen Satz und schreibt ihn dann in der anderen Sprache. Wie wenn du eine Geschichte, die du gehört hast, mit deinen eigenen Worten nacherzählst.",
+          "b": "Das Modell übersetzt nicht Wort für Wort, weil die Reihenfolge der Wörter in verschiedenen Sprachen anders ist. Es verwandelt den ganzen Satz in Zahlen, die für seine Bedeutung stehen, und sagt dann die passenden Wörter in der anderen Sprache nacheinander voraus, wie in Lektion 3."
+        },
+        {
+          "ic": "🤔",
+          "s": "Manchmal irrt es sich! Eine Computer-„Maus“ ist kein Tier. Deshalb fragen wir bei wichtigen Dingen jemanden, der die Sprache kann.",
+          "b": "Es kann sich bei Sprichwörtern irren und bei Wörtern mit mehr als einer Bedeutung, wie „Bank“ (zum Sitzen oder für Geld). Deshalb prüfen wir wichtige Übersetzungen mit jemandem, der beide Sprachen kann."
+        }
+      ],
+      "qs": {
+        "s": [
+          [
+            "Woher hat KI das Übersetzen gelernt?",
+            [
+              [
+                "Aus vielen Sätzen, die in zwei Sprachen geschrieben sind",
+                1
+              ],
+              [
+                "Aus Träumen",
+                0
+              ],
+              [
+                "Sie wusste es von selbst, ohne Beispiele",
+                0
+              ]
+            ],
+            "Sie hat aus vielen Beispielen gelernt: derselbe Satz in zwei Sprachen."
+          ],
+          [
+            "Übersetzt sie Wort für Wort?",
+            [
+              [
+                "Nein, sie versteht zuerst den ganzen Satz",
+                1
+              ],
+              [
+                "Ja, immer Wort für Wort",
+                0
+              ]
+            ],
+            "Sie versteht den ganzen Satz und schreibt ihn dann in der anderen Sprache."
+          ],
+          [
+            "Kann sie beim Übersetzen Fehler machen?",
+            [
+              [
+                "Ja, manchmal",
+                1
+              ],
+              [
+                "Nein, sie macht nie Fehler",
+                0
+              ]
+            ],
+            "Jede KI kann Fehler machen, deshalb prüfen wir wichtige Dinge nach."
+          ]
+        ],
+        "b": [
+          [
+            "Wie nennen wir die übersetzten Sätze, aus denen das Modell gelernt hat?",
+            [
+              [
+                "Trainingsdaten",
+                1
+              ],
+              [
+                "Passwort",
+                0
+              ],
+              [
+                "Pixel",
+                0
+              ]
+            ],
+            "Die Beispiele, aus denen ein Modell lernt, heißen Trainingsdaten."
+          ],
+          [
+            "Warum funktioniert Wort-für-Wort-Übersetzung nicht?",
+            [
+              [
+                "Weil Wortstellung und Bedeutungen in verschiedenen Sprachen anders sind",
+                1
+              ],
+              [
+                "Weil der Computer langsam ist",
+                0
+              ],
+              [
+                "Weil alle Sprachen gleich sind",
+                0
+              ]
+            ],
+            "Jede Sprache hat ihre eigene Reihenfolge und ihre eigenen Ausdrücke, deshalb muss man die Bedeutung des ganzen Satzes verstehen."
+          ],
+          [
+            "Du hast eine wichtige Nachricht für deine Oma übersetzt. Was tust du?",
+            [
+              [
+                "Ich bitte jemanden, der beide Sprachen kann, sie zu prüfen",
+                1
+              ],
+              [
+                "Ich schicke sie sofort ohne Prüfung",
+                0
+              ],
+              [
+                "Ich übersetze sie Wort für Wort mit einem Wörterbuch",
+                0
+              ]
+            ],
+            "Maschinelle Übersetzung ist nützlich, kann sich aber irren, deshalb prüfen wir die wichtigen Teile."
+          ]
+        ]
+      },
+      "home": {
+        "s": "Sucht mit Papa oder Mama drei Wörter aus und lernt, wie man sie in einer anderen Sprache sagt. Welches ist am schwersten?",
+        "b": "Schreib ein Sprichwort auf (wie „Ich verstehe nur Bahnhof“) und bitte jemanden aus der Familie, es Wort für Wort in eine andere Sprache zu übersetzen. Ist die Bedeutung gleich geblieben? Warum?"
+      }
+    },
+    {
+      "id": "2026-12-whoami",
+      "month": "2026-12",
+      "kind": "challenge",
+      "icon": "🕵️",
+      "title": "Die „Wer bin ich?“-Herausforderung: kluge Werkzeuge um uns herum",
+      "sub": {
+        "s": "Errate das kluge Werkzeug",
+        "b": "Rätsel-Herausforderung: 5 kluge Werkzeuge"
+      },
+      "intro": {
+        "s": "Ich beschreibe dir ein kluges Werkzeug. Rate, was es ist! 🔍",
+        "b": "Fünf Rätsel über KI-Werkzeuge, die wir jeden Tag benutzen. Lies die Beschreibung und errate das Werkzeug."
+      },
+      "qs": {
+        "s": [
+          [
+            "Ich höre deine Stimme und antworte dir: „Wie spät ist es?“ Wer bin ich?",
+            [
+              [
+                "Der Sprachassistent",
+                1
+              ],
+              [
+                "Ein normaler Kühlschrank",
+                0
+              ]
+            ],
+            "Ein Sprachassistent verwandelt deine Sprache in Wörter und antwortet dann."
+          ],
+          [
+            "Ich kenne den Weg und sage zu Papa: „Bieg rechts ab.“ Wer bin ich?",
+            [
+              [
+                "Die Karten-App",
+                1
+              ],
+              [
+                "Die Lampe",
+                0
+              ]
+            ],
+            "Eine Karten-App sagt den schnellsten Weg voraus."
+          ],
+          [
+            "Ich entsperre Mamas Handy, wenn ich ihr Gesicht sehe. Wer bin ich?",
+            [
+              [
+                "Gesichtserkennung",
+                1
+              ],
+              [
+                "Der Wecker",
+                0
+              ]
+            ],
+            "Der Computer sieht das Gesicht als Zahlen und vergleicht sie."
+          ],
+          [
+            "Ich schlage dir Zeichentrickfilme vor, die du lieben wirst. Wer bin ich?",
+            [
+              [
+                "Das Empfehlungssystem",
+                1
+              ],
+              [
+                "Der Stuhl",
+                0
+              ]
+            ],
+            "Es lernt aus dem, was du vorher angeschaut hast, wie in der Lektion über Muster."
+          ],
+          [
+            "Ich schreibe auf, was du sagst. Wer bin ich?",
+            [
+              [
+                "Sprache-zu-Text",
+                1
+              ],
+              [
+                "Der Buntstift",
+                0
+              ]
+            ],
+            "Wie das Mikrofon im Malstudio!"
+          ]
+        ],
+        "b": [
+          [
+            "Ich sortiere lästige Werbenachrichten und halte sie aus deinem Posteingang fern. Wer bin ich?",
+            [
+              [
+                "Der Spamfilter",
+                1
+              ],
+              [
+                "Der Drucker",
+                0
+              ],
+              [
+                "Der Taschenrechner",
+                0
+              ]
+            ],
+            "Er hat aus Beispielen von Werbenachrichten und normalen Nachrichten gelernt."
+          ],
+          [
+            "Ich sage einen Stau voraus, bevor du dort ankommst. Wer bin ich?",
+            [
+              [
+                "Die Karten- und Navigations-App",
+                1
+              ],
+              [
+                "Eine normale Ampel",
+                0
+              ],
+              [
+                "Der Tacho des Autos",
+                0
+              ]
+            ],
+            "Sie sammelt Daten über den Autoverkehr und findet die Muster."
+          ],
+          [
+            "Ich helfe der Ärztin, Röntgenbilder zu lesen. Wer bin ich?",
+            [
+              [
+                "Ein medizinisches Modell für maschinelles Sehen",
+                1
+              ],
+              [
+                "Das Fieberthermometer",
+                0
+              ],
+              [
+                "Das Stethoskop der Ärztin",
+                0
+              ]
+            ],
+            "Es hat Tausende Bilder gesehen und hilft der Ärztin, und die Ärztin entscheidet."
+          ],
+          [
+            "Ich übersetze ein Schild in einem anderen Land, wenn du die Kamera darauf richtest. Wer bin ich?",
+            [
+              [
+                "Kamera-Übersetzung",
+                1
+              ],
+              [
+                "Das Fernglas",
+                0
+              ],
+              [
+                "Der Kompass",
+                0
+              ]
+            ],
+            "Sie liest die Buchstaben im Bild und übersetzt sie dann, wie in der kleinen Lektion vom letzten Monat."
+          ],
+          [
+            "Ich weiß, dass deine Katze auf deinen Fotos eine Katze ist, und lege ihre Bilder zusammen. Wer bin ich?",
+            [
+              [
+                "Foto-Sortierung",
+                1
+              ],
+              [
+                "Ein Fotoalbum aus Papier",
+                0
+              ],
+              [
+                "Der Radiergummi",
+                0
+              ]
+            ],
+            "Sie hat aus vielen Katzenbildern gelernt, wie in Lektion 2."
+          ]
+        ]
+      }
+    },
+    {
+      "id": "2027-01-space",
+      "month": "2027-01",
+      "kind": "story",
+      "icon": "🚀",
+      "title": "Eine Reise ins Weltall",
+      "sub": {
+        "s": "Schreib eine Geschichte im Weltall",
+        "b": "Neues Geschichtenthema: das Weltall"
+      },
+      "intro": {
+        "s": "Diesen Monat schreiben wir Geschichten im Weltall! Wähl den Helden und den Ort, und Nabeeh beginnt die Geschichte. 🌙",
+        "b": "Das Geschichtenthema dieses Monats: ein Abenteuer im Weltall. Wähl den Helden, den Ort und das Problem, oder schreib deine eigene Idee, und dann seid du und Nabeeh abwechselnd dran."
+      },
+      "chips": {
+        "s": [
+          {
+            "l": "Der Held",
+            "o": [
+              "Ein kleiner Roboter",
+              "Eine Katze als Astronautin",
+              "Ein Mädchen, das die Sterne liebt",
+              "Ein Junge, der die Planeten liebt"
+            ]
+          },
+          {
+            "l": "Ort",
+            "o": [
+              "auf dem Mond",
+              "in einem Raumschiff",
+              "bei einem leuchtenden Stern",
+              "auf einem roten Planeten"
+            ]
+          }
+        ],
+        "b": [
+          {
+            "l": "Der Held",
+            "o": [
+              "Ein Entdecker-Roboter",
+              "Eine junge Astronomin",
+              "Ein junger Raketeningenieur",
+              "Eine fliegende Katze"
+            ]
+          },
+          {
+            "l": "Ort",
+            "o": [
+              "auf einer Raumstation",
+              "auf einem Süßigkeitenplaneten",
+              "auf den Ringen des Saturn",
+              "auf der dunklen Seite des Mondes"
+            ]
+          },
+          {
+            "l": "Das Problem",
+            "o": [
+              "das Funkgerät ist kaputt",
+              "ein kleiner Stern hat sich verirrt",
+              "das Team braucht Wasser",
+              "eine seltsame Nachricht ist angekommen"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -7,7 +7,7 @@
    Arabic is built into this file. Another language loads its pack (lang/<code>.js) before the app starts.
    tx()/txp() return the translation of an Arabic text by its key, or the Arabic text itself.
    Packs are made from i18n/<code>.json by i18n/build.py (see i18n/README.md). */
-var LANGS=[['ar','العربية'],['en','English']]; /* add ['de','Deutsch'],['fr','Français'] once lang/de.js and lang/fr.js exist */
+var LANGS=[['ar','العربية'],['en','English'],['de','Deutsch']]; /* add ['fr','Français'] once lang/fr.js exists */
 var LANG=(function(){var l='ar';try{l=localStorage.getItem('ai-journey-lang')||'ar'}catch(e){}return LANGS.some(function(x){return x[0]===l})?l:'ar'})();
 var I18N=null;
 if(LANG!=='ar'){document.documentElement.lang=LANG;document.documentElement.dir='ltr';document.write('<script src="lang/'+LANG+'.js"><\/script>')}
@@ -418,6 +418,7 @@ ul.recap li::before{content:'✓ ';color:var(--learn)}
 .tr-ans{font-weight:800;color:var(--soft)}.tr-leaves{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%}
 .tr-leaf{border:2px solid var(--line);border-radius:12px;padding:6px;text-align:center;background:var(--card)}.tr-leaf small{display:block;color:var(--soft);font-weight:700}
 .tr-leaf span{font-size:1.5rem}.tr-leaf.ok{border-color:var(--learn);background:var(--learn-bg)}.tr-leaf.mix{border-color:var(--wrong);background:var(--wrong-bg)}
+h1,h2,h3{overflow-wrap:break-word;hyphens:auto}
 .langchip{width:auto;padding:0 10px;gap:4px;display:inline-flex;align-items:center}
 .langchip b{font-size:.85rem}
 .langs{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
