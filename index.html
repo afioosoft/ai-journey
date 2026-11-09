@@ -770,7 +770,17 @@ function beep(notes){
      o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.02);t+=d*.8});
   }catch(e){}
 }
-const SFX={ok:()=>beep([[660,.12],[880,.18]]),no:()=>beep([[220,.18]]),star:()=>beep([[523,.14],[659,.14],[784,.14],[1047,.35]]),tap:()=>beep([[520,.06]])};
+/* tap = soft rising bubble pop */
+function pop(){
+  if(!S.sound)return;
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();
+   const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type='sine';
+   o.frequency.setValueAtTime(380,t);o.frequency.exponentialRampToValueAtTime(900,t+.063);
+   g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.22,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+.09);
+   o.connect(g).connect(AC.destination);o.start(t);o.stop(t+.11);
+  }catch(e){}
+}
+const SFX={ok:()=>beep([[660,.12],[880,.18]]),no:()=>beep([[220,.18]]),star:()=>beep([[523,.14],[659,.14],[784,.14],[1047,.35]]),tap:pop};
 function paintSound(){$('snd').textContent=S.sound?'🔊':'🔇';$('snd').setAttribute('aria-pressed',S.sound)}
 $('snd').onclick=()=>{S.sound=!S.sound;save();paintSound();SFX.tap()};
 
