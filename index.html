@@ -7,7 +7,7 @@
    Arabic is built into this file. Another language loads its pack (lang/<code>.js) before the app starts.
    tx()/txp() return the translation of an Arabic text by its key, or the Arabic text itself.
    Packs are made from i18n/<code>.json by i18n/build.py (see i18n/README.md). */
-var LANGS=[['ar','العربية'],['en','English'],['de','Deutsch']]; /* add ['fr','Français'] once lang/fr.js exists */
+var LANGS=[['ar','العربية'],['en','English'],['de','Deutsch'],['fr','Français']]; /* a language appears here once lang/<code>.js exists (see i18n/README.md) */
 var LANG=(function(){var l='ar';try{l=localStorage.getItem('ai-journey-lang')||'ar'}catch(e){}return LANGS.some(function(x){return x[0]===l})?l:'ar'})();
 var I18N=null;
 if(LANG!=='ar'){document.documentElement.lang=LANG;document.documentElement.dir='ltr';document.write('<script src="lang/'+LANG+'.js"><\/script>')}

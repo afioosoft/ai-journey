@@ -1,6 +1,6 @@
 # Languages
 
-The app is written in Arabic. English (and later German and French) are added on top, without
+The app is written in Arabic. English, German and French are added on top, without
 changing how the Arabic app works. The 🌐 button at the top of the home screen picks the language;
 the choice is saved on the device (`ai-journey-lang` in localStorage) and the page reloads.
 
@@ -56,7 +56,13 @@ For monthly content, add the item to `monthly.json` and to the copy built into `
   option («بألوان») must be the start of the "rainbow colours" text, because the app checks both.
 - The key for `٠١٢٣٤٥٦٧٨٩` is translated as `0123456789`.
 
-## Adding German or French to the picker
+## Adding another language to the picker
 
-When `i18n/de.json` (or `fr.json`) is translated, run the build, then add `['de','Deutsch']`
-(or `['fr','Français']`) to `LANGS` at the top of `index.html` and bump `CACHE` in `sw.js`.
+English (`en`), German (`de`) and French (`fr`) are in the picker. For a new language, run
+`python3 i18n/build.py <code>` once to create `i18n/<code>.json` with empty texts, translate
+every `t`, build again, then add `['<code>','<name>']` to `LANGS` at the top of
+`index.html`, add the language to `LANGS` in `helper/src/index.js` (and rebuild `helper/worker.js`),
+and bump `CACHE` in `sw.js`.
+
+German uses "du" for children and "Sie" for parents' texts; French uses "tu" and "vous" the same way.
+French texts use a non-breaking space before ? ! : ; % and inside « ».
