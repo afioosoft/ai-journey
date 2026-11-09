@@ -4,9 +4,10 @@ This small Cloudflare Worker lets the kids ask Claude questions inside the lesso
 It keeps the Anthropic API key secret, checks the family PIN, sends off-topic
 questions back with a friendly fixed reply, blocks phone numbers and e-mail
 addresses, and asks Claude for a short, child-safe answer in Arabic.
-It also draws simple pictures (SVG) for the drawing studio, makes real pictures
-with an image generator (OpenAI gpt-image, optional), and writes stories
-turn by turn with the child, after checking that each idea suits young children.
+It also makes pictures with OpenAI's image generator (GPT Image 2.5): medium
+quality for each child's 10 detailed pictures a week, low quality for simple
+drawings, story covers and any extra pictures. Stories are written turn by turn
+with Claude Haiku, after checking that each idea suits young children.
 It stores nothing.
 
 **Updating:** when this file changes, open the Worker in Cloudflare → Edit code,
@@ -32,7 +33,9 @@ replace everything with the new `worker.js`, and click Deploy. Your secrets stay
 4. **Settings → Variables and Secrets** → add two **Secret** values:
    - `ANTHROPIC_API_KEY` = the key from step 1
    - `FAMILY_PIN` = a PIN you choose, e.g. 6 digits
-   Optional text values: `ANSWER_MODEL` (default `claude-sonnet-5-5`; `claude-haiku-5-5` costs less, `claude-opus-5-5` costs more).
+   Optional text values: `ANSWER_MODEL` for chat answers and `STORY_MODEL` for stories
+   (both default `claude-haiku-5-5`, the cheapest; `claude-sonnet-5-5` costs about 20 times more).
+   **If you set `ANSWER_MODEL` to Sonnet earlier, delete that variable** so chat uses Haiku.
 5. Copy the Worker address, like `https://ai-journey-helper.<name>.workers.dev`.
 
 ### 3. In the app on each device
@@ -41,9 +44,12 @@ choose the daily limit, and press «جرّب الاتصال».
 
 ## Real pictures in the drawing studio (optional, about 5 minutes)
 
-The drawing studio has two artists: «رسم نبيه» (Claude draws with shapes) and
-«مولّد الصور» (OpenAI gpt-image makes a real-looking picture). Every idea first
-passes the same Claude kid-safety check, then OpenAI's own safety filter.
+The drawing studio has two artists: «رسم نبيه» (a simple cartoon drawing, low
+quality) and «مولّد الصور» (a detailed, real-looking picture, medium quality for
+the first 10 each week per child, then low). Story covers are low quality too.
+Every idea first passes the same Claude kid-safety check, then OpenAI's own
+safety filter. Without an OpenAI key, «رسم نبيه» and covers fall back to simple
+shapes drawn by Claude.
 
 1. Go to https://platform.openai.com and sign in or sign up.
 2. **Settings → Billing**: add a small credit, for example $5.
@@ -55,10 +61,16 @@ passes the same Claude kid-safety check, then OpenAI's own safety filter.
 6. In the app: ركن الأهل → اسأل نبيه → «جرّب الاتصال» should now say
    «الصور الحقيقية مفعّلة».
 
-Optional text values: `IMAGE_QUALITY` = `low` (default, roughly 1 US cent a
-picture), `medium` or `high` (sharper, costs several times more);
-`IMAGE_MODEL` (default `gpt-image-2`).
-Each picture counts as one use of the child's daily limit.
+Optional text values:
+- `IMAGE_MODEL` (default `gpt-image-2.5-flare`, GPT Image 2.5). If OpenAI says
+  the model is unknown, the helper retries once with `gpt-image-2`, so pictures
+  keep working.
+- `IMAGE_QUALITY` for the weekly detailed pictures: `medium` (default, about
+  US$0.013 a picture), `low` (about US$0.006) or `high` (about US$0.053).
+- `DRAW_QUALITY` for simple drawings, covers and extra pictures: `low` (default).
+
+Each picture counts as one use of the child's daily limit. The app counts
+every AI use per child per week (ركن الأهل → اسأل نبيه → «استعمال نبيه هذا الأسبوع»).
 
 The same OpenAI key also powers the 🎤 microphone in the drawing studio: the
 child says what they want, the voice is turned into Arabic words

@@ -1,26 +1,32 @@
 // Helper server for the "رحلة الذكاء الاصطناعي" kids app.
 // It keeps the Anthropic API key secret, checks the family PIN, keeps questions
 // on the lesson topic, and asks Claude for a short, child-safe answer in Arabic.
-// Also draws simple pictures (SVG), makes real pictures with an image generator
-// (OpenAI gpt-image, optional), and writes stories with the child, turn by turn.
+// Also makes pictures with an image generator (OpenAI GPT Image: medium quality for
+// the child's real pictures, low for simple drawings and story covers), and writes
+// stories with the child, turn by turn. Without an OpenAI key, simple drawings fall
+// back to SVG shapes drawn by the text model.
 // Nothing the children type is stored here.
 //
 // Settings (Cloudflare dashboard -> Worker -> Settings -> Variables and Secrets):
 //   ANTHROPIC_API_KEY  (secret)  your Anthropic API key
 //   FAMILY_PIN         (secret)  the PIN you type once in the app's parents corner
-//   ANSWER_MODEL       (text, optional) default "claude-sonnet-5-5"
+//   ANSWER_MODEL       (text, optional) chat answers, default "claude-haiku-5-5"
+//   STORY_MODEL        (text, optional) storytelling, default "claude-haiku-5-5"
 //   ALLOWED_ORIGINS    (text, optional) default "https://afioosoft.github.io"
 //   OPENAI_API_KEY     (secret, optional) turns on "real pictures" in the drawing studio
-//   IMAGE_MODEL        (text, optional) default "gpt-image-2"
-//   IMAGE_QUALITY      (text, optional) "low" (default, cheapest), "medium" or "high"
+//   IMAGE_MODEL        (text, optional) default "gpt-image-2.5-flare" (GPT Image 2.5);
+//                      if OpenAI does not know the model, the helper retries once with "gpt-image-2"
+//   IMAGE_QUALITY      (text, optional) real pictures (the weekly guaranteed ones): "medium" (default), "low" or "high"
+//   DRAW_QUALITY       (text, optional) simple drawings, story covers and extra pictures: "low" (default), "medium" or "high"
 //   LISTEN_MODEL       (text, optional) speech-to-text model, default "gpt-4o-mini-transcribe"
 
 import Anthropic from "@anthropic-ai/sdk";
 
 const GATE_MODEL = "claude-haiku-5-5";
-const DEFAULT_MODEL = "claude-sonnet-5-5";
+const DEFAULT_MODEL = "claude-haiku-5-5";
 const MAX_QUESTION = 300;
-const DEFAULT_IMAGE_MODEL = "gpt-image-2";
+const DEFAULT_IMAGE_MODEL = "gpt-image-2.5-flare";
+const BACKUP_IMAGE_MODEL = "gpt-image-2";
 const DEFAULT_LISTEN_MODEL = "gpt-4o-mini-transcribe";
 const MAX_AUDIO_BYTES = 1_500_000; // about 30 seconds of compressed speech
 const WITH_FALLBACK = ["claude-opus-5-5", "claude-opus-5", "claude-fable-5-1", "claude-sonnet-5-5"];
@@ -58,7 +64,7 @@ const REPLY = {
   imageBusy:
     "مولّد الصور مشغول أو انتهى رصيده الآن. 🔧 جرّب «رسم نبيه»، أو اطلب من بابا أو ماما أن يتحقّقوا.",
   noListen:
-    "الميكروفون يحتاج مفتاح OpenAI في الخادم. 🎤 اطلب من بابا أو ماما تفعيله، أو اكتب وصفك.",
+    "الميكروفون يحتاج مفتاح الصور والصوت في الخادم. 🎤 اطلب من بابا أو ماما تفعيله، أو اكتب وصفك.",
   tooLong: "كلامك طويل! 🎤 قل وصفك في جملة أو جملتين فقط.",
   notHeard: "لم أسمعك جيداً. 🎤 اقترب من الجهاز وتكلّم بوضوح، ثم جرّب مرة أخرى.",
   notForKids:
@@ -156,8 +162,8 @@ function systemPrompt(level, lesson) {
 }
 
 // ---------- shared helpers ----------
-function answerParams(env, extra) {
-  const model = env.ANSWER_MODEL || DEFAULT_MODEL;
+function answerParams(env, extra, model) {
+  model = model || env.ANSWER_MODEL || DEFAULT_MODEL;
   const params = { model, ...extra };
   // Server-side fallback re-runs a declined request on another model (not available for Haiku).
   if (WITH_FALLBACK.includes(model)) Object.assign(params, { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" });
@@ -219,7 +225,7 @@ async function handleAsk(client, env, body, level) {
     max_tokens: 4000, output_config: { effort: "low" }, system: systemPrompt(level, lesson), messages,
   }));
   if (response.stop_reason === "refusal") return [{ answer: REPLY.refused, kind: "refused" }, 200];
-  return [{ answer: textOf(response) || REPLY.busy, kind: "answer" }, 200];
+  return [{ answer: textOf(response) || REPLY.busy, kind: "answer", used: { f: "chat", q: "" } }, 200];
 }
 
 async function handleDraw(client, env, body) {
@@ -227,6 +233,13 @@ async function handleDraw(client, env, body) {
   if (!prompt) return [{ error: "empty" }, 400];
   if (looksPersonal(prompt)) return [{ answer: REPLY.personal, kind: "personal" }, 200];
   if (!(await isKidFriendly(client, "draw", prompt))) return [{ answer: REPLY.notForKids, kind: "not_for_kids" }, 200];
+  // Simple drawings and story covers come from the image generator at low quality.
+  if (env.OPENAI_API_KEY) {
+    const style = body.cover
+      ? "A simple, cheerful cover illustration for a children's storybook, flat colours, soft shapes, one clear scene. "
+      : "A simple, cute flat cartoon drawing for young children: bold clean outlines, bright flat colours, rounded shapes, plain background, like a child's sticker. ";
+    return makePicture(env, style, prompt, qualityOf(env.DRAW_QUALITY, "low"), body.cover ? "cover" : "drawing");
+  }
   const response = await client.beta.messages.create(answerParams(env, {
     max_tokens: 16000,
     output_config: { effort: "low" },
@@ -242,35 +255,47 @@ async function handleDraw(client, env, body) {
   if (response.stop_reason === "refusal") return [{ answer: REPLY.notForKids, kind: "refused" }, 200];
   const svg = cleanSvg(textOf(response));
   if (!svg) return [{ answer: REPLY.busy, kind: "busy" }, 200];
-  return [{ svg, kind: "drawing" }, 200];
+  return [{ svg, kind: "drawing", used: { f: body.cover ? "cover" : "drawing", q: "svg" } }, 200];
 }
 
-// A real picture from an image generator (OpenAI gpt-image). The child's own Arabic
+function qualityOf(v, dflt) {
+  return ["low", "medium", "high"].includes(v) ? v : dflt;
+}
+
+// A real picture from an image generator (OpenAI GPT Image). The child's own Arabic
 // words go to the generator, wrapped in a gentle children's-book style.
+// The app sends tier "extra" once the child has used the week's guaranteed pictures;
+// those are made at the cheaper drawing quality.
 async function handleImage(client, env, body) {
   const prompt = String(body.prompt || "").trim().slice(0, MAX_QUESTION);
   if (!prompt) return [{ error: "empty" }, 400];
   if (!env.OPENAI_API_KEY) return [{ answer: REPLY.noImage, kind: "no_image" }, 200];
   if (looksPersonal(prompt)) return [{ answer: REPLY.personal, kind: "personal" }, 200];
   if (!(await isKidFriendly(client, "draw", prompt))) return [{ answer: REPLY.notForKids, kind: "not_for_kids" }, 200];
-  const quality = ["low", "medium", "high"].includes(env.IMAGE_QUALITY) ? env.IMAGE_QUALITY : "low";
+  const quality = body.tier === "extra" ? qualityOf(env.DRAW_QUALITY, "low") : qualityOf(env.IMAGE_QUALITY, "medium");
+  return makePicture(env, "A cheerful, gentle, colourful picture for a children's book, suitable for young children. ", prompt, quality, "picture");
+}
+
+async function openaiImage(env, model, prompt, quality) {
   const res = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
     headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: env.IMAGE_MODEL || DEFAULT_IMAGE_MODEL,
-      prompt:
-        "A cheerful, gentle, colourful picture for a children's book, suitable for young children. " +
-        "No text, letters or words in the picture. No real people. Draw exactly what this child described (in Arabic): " + prompt,
-      n: 1,
-      size: "1024x1024",
-      quality,
-      output_format: "jpeg",
-      moderation: "auto",
-    }),
+    body: JSON.stringify({ model, prompt, n: 1, size: "1024x1024", quality, output_format: "jpeg", moderation: "auto" }),
     signal: AbortSignal.timeout(80_000),
   });
-  const out = await res.json().catch(() => ({}));
+  return [res, await res.json().catch(() => ({}))];
+}
+
+async function makePicture(env, style, prompt, quality, feature) {
+  const full = style + "No text, letters or words in the picture. No real people. Draw exactly what this child described (in Arabic): " + prompt;
+  let model = env.IMAGE_MODEL || DEFAULT_IMAGE_MODEL;
+  let [res, out] = await openaiImage(env, model, full, quality);
+  const e = out.error || {};
+  const unknownModel = (res.status === 404 || res.status === 400) && (e.code === "model_not_found" || (/model/i.test(e.message || "") && e.code !== "moderation_blocked"));
+  if (unknownModel && model !== BACKUP_IMAGE_MODEL) {
+    model = BACKUP_IMAGE_MODEL;
+    [res, out] = await openaiImage(env, model, full, quality);
+  }
   if (res.status === 401) return [{ error: "image_key" }, 502];
   if (!res.ok) {
     const err = out.error || {};
@@ -280,7 +305,7 @@ async function handleImage(client, env, body) {
   }
   const b64 = out.data && out.data[0] && out.data[0].b64_json;
   if (!b64) return [{ answer: REPLY.busy, kind: "busy" }, 200];
-  return [{ image: "data:image/jpeg;base64," + b64, kind: "image" }, 200];
+  return [{ image: "data:image/jpeg;base64," + b64, kind: "image", used: { f: feature, q: quality } }, 200];
 }
 
 // Speech to text for the microphone button: the child's voice becomes words in the
@@ -311,7 +336,7 @@ async function handleListen(client, env, body) {
   const text = String(out.text || "").replace(/\s+/g, " ").trim().slice(0, 160);
   if (!text) return [{ answer: REPLY.notHeard, kind: "not_heard" }, 200];
   if (looksPersonal(text)) return [{ answer: REPLY.personal, kind: "personal" }, 200];
-  return [{ text, kind: "heard" }, 200];
+  return [{ text, kind: "heard", used: { f: "mic", q: "" } }, 200];
 }
 
 async function handleStory(client, env, body, level) {
@@ -355,16 +380,17 @@ async function handleStory(client, env, body, level) {
         ? "This is the last page: write a happy ending that ties the story together. Return choices as an empty list."
         : "Continue the story with your sentence, then offer exactly 3 short ideas (at most 6 words each, in Arabic) for what the child could write next.",
       "Give the story a short Arabic title (at most 5 words).",
+      "In this app your name is «نبيه». Never name any company or AI model.",
     ].join("\n"),
     messages: [{
       role: "user",
       content: `فكرة القصة: ${setup}\n${story ? "القصة حتى الآن:\n" + story + "\n" : ""}${line ? "جملة الطفل الجديدة: " + line : "ابدأ القصة بالجملة الأولى."}`,
     }],
-  }));
+  }, env.STORY_MODEL || DEFAULT_MODEL));
   if (response.stop_reason === "refusal") return [{ answer: REPLY.refused, kind: "refused" }, 200];
   let out;
   try { out = JSON.parse(textOf(response)); } catch { return [{ answer: REPLY.busy, kind: "busy" }, 200]; }
-  return [{ kind: "story", sentence: String(out.sentence || "").slice(0, 400), choices: (out.choices || []).slice(0, 3).map((c) => String(c).slice(0, 60)), title: String(out.title || "").slice(0, 60) }, 200];
+  return [{ kind: "story", sentence: String(out.sentence || "").slice(0, 400), choices: (out.choices || []).slice(0, 3).map((c) => String(c).slice(0, 60)), title: String(out.title || "").slice(0, 60), used: { f: "story", q: "" } }, 200];
 }
 
 export default {
