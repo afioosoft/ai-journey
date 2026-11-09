@@ -1,0 +1,395 @@
+{
+  "about": "fr version of monthly.json, made by i18n/build.py from the translations in i18n/fr.json. Edit monthly.json, then run the build.",
+  "items": [
+    {
+      "id": "2026-11-translate",
+      "month": "2026-11",
+      "kind": "mini",
+      "icon": "🌍",
+      "title": "Comment l'IA traduit-elle ?",
+      "sub": {
+        "s": "Une petite leçon sur les mots et les langues",
+        "b": "Une courte leçon : la traduction automatique"
+      },
+      "pages": [
+        {
+          "ic": "🗣️",
+          "s": "Il y a plein de langues dans le monde : l'arabe, l'anglais, le chinois et beaucoup d'autres. Parfois, on veut comprendre quelqu'un qui ne parle pas notre langue.",
+          "b": "Il y a plus de sept mille langues dans le monde. La traduction automatique nous aide à comprendre en quelques secondes un texte ou des paroles dans une langue qu'on ne connaît pas."
+        },
+        {
+          "ic": "📚",
+          "s": "L'IA a lu un nombre énorme de phrases écrites dans deux langues à la fois, comme un livre où chaque page est dans une langue avec une autre langue à côté.",
+          "b": "Un modèle de traduction a appris avec des millions de phrases déjà traduites : la phrase dans une langue, et à côté la même phrase dans une autre. Ce sont les données d'entraînement, comme dans la leçon 2."
+        },
+        {
+          "ic": "🧩",
+          "s": "Elle ne traduit pas mot à mot. Elle comprend d'abord toute la phrase, puis l'écrit dans l'autre langue. Comme quand tu racontes avec tes mots une histoire que tu as entendue.",
+          "b": "Le modèle ne traduit pas mot à mot, parce que l'ordre des mots est différent selon les langues. Il transforme toute la phrase en nombres qui représentent son sens, puis prédit les bons mots dans l'autre langue les uns après les autres, comme dans la leçon 3."
+        },
+        {
+          "ic": "🤔",
+          "s": "Parfois, elle se trompe ! La « souris » d'un ordinateur n'est pas un animal. Alors pour les choses importantes, on demande à quelqu'un qui connaît la langue.",
+          "b": "Elle peut se tromper sur les expressions, et sur les mots qui ont plus d'un sens, comme « avocat » (un fruit, ou une personne qui défend au tribunal). Alors on vérifie les traductions importantes avec quelqu'un qui connaît les deux langues."
+        }
+      ],
+      "qs": {
+        "s": [
+          [
+            "Où l'IA a-t-elle appris à traduire ?",
+            [
+              [
+                "Avec plein de phrases écrites dans deux langues",
+                1
+              ],
+              [
+                "Dans ses rêves",
+                0
+              ],
+              [
+                "Elle savait toute seule, sans exemples",
+                0
+              ]
+            ],
+            "Elle a appris avec plein d'exemples : la même phrase dans deux langues."
+          ],
+          [
+            "Traduit-elle mot à mot ?",
+            [
+              [
+                "Non, elle comprend d'abord toute la phrase",
+                1
+              ],
+              [
+                "Oui, toujours mot à mot",
+                0
+              ]
+            ],
+            "Elle comprend toute la phrase, puis l'écrit dans l'autre langue."
+          ],
+          [
+            "Peut-elle se tromper en traduisant ?",
+            [
+              [
+                "Oui, parfois",
+                1
+              ],
+              [
+                "Non, elle ne se trompe jamais",
+                0
+              ]
+            ],
+            "Toute IA peut se tromper, alors on vérifie les choses importantes."
+          ]
+        ],
+        "b": [
+          [
+            "Comment appelle-t-on les phrases traduites avec lesquelles le modèle a appris ?",
+            [
+              [
+                "Les données d'entraînement",
+                1
+              ],
+              [
+                "Mot de passe",
+                0
+              ],
+              [
+                "Les pixels",
+                0
+              ]
+            ],
+            "Les exemples avec lesquels un modèle apprend s'appellent des données d'entraînement."
+          ],
+          [
+            "Pourquoi la traduction mot à mot ne marche-t-elle pas ?",
+            [
+              [
+                "Parce que l'ordre des mots et les sens sont différents selon les langues",
+                1
+              ],
+              [
+                "Parce que l'ordinateur est lent",
+                0
+              ],
+              [
+                "Parce que toutes les langues se ressemblent",
+                0
+              ]
+            ],
+            "Chaque langue a son ordre et ses expressions, alors il faut comprendre le sens de toute la phrase."
+          ],
+          [
+            "Tu as traduit un message important pour ta mamie. Que fais-tu ?",
+            [
+              [
+                "Je demande à quelqu'un qui connaît les deux langues de le vérifier",
+                1
+              ],
+              [
+                "Je l'envoie tout de suite sans vérifier",
+                0
+              ],
+              [
+                "Je le traduis mot à mot avec un dictionnaire",
+                0
+              ]
+            ],
+            "La traduction automatique est utile, mais elle peut se tromper, alors on vérifie les parties importantes."
+          ]
+        ]
+      },
+      "home": {
+        "s": "Choisis trois mots avec Papa ou Maman, et apprends à les dire dans une autre langue. Lequel est le plus difficile ?",
+        "b": "Écris une expression (comme « il pleut des cordes ») et demande à quelqu'un de la famille de la traduire mot à mot dans une autre langue. Le sens est-il resté le même ? Pourquoi ?"
+      }
+    },
+    {
+      "id": "2026-12-whoami",
+      "month": "2026-12",
+      "kind": "challenge",
+      "icon": "🕵️",
+      "title": "Le défi « Qui suis-je ? » : les outils intelligents autour de nous",
+      "sub": {
+        "s": "Devine l'outil intelligent",
+        "b": "Défi devinettes : 5 outils intelligents"
+      },
+      "intro": {
+        "s": "Je vais te décrire un outil intelligent. Devine ce que c'est ! 🔍",
+        "b": "Cinq devinettes sur des outils d'IA qu'on utilise tous les jours. Lis la description et devine l'outil."
+      },
+      "qs": {
+        "s": [
+          [
+            "J'entends ta voix et je te réponds : « Quelle heure est-il ? » Qui suis-je ?",
+            [
+              [
+                "L'assistant vocal",
+                1
+              ],
+              [
+                "Un frigo ordinaire",
+                0
+              ]
+            ],
+            "Un assistant vocal transforme ta parole en mots, puis répond."
+          ],
+          [
+            "Je connais le chemin et je dis à Papa : « Tourne à droite. » Qui suis-je ?",
+            [
+              [
+                "L'appli de cartes",
+                1
+              ],
+              [
+                "La lampe",
+                0
+              ]
+            ],
+            "Une appli de cartes prédit le chemin le plus rapide."
+          ],
+          [
+            "Je déverrouille le téléphone de Maman quand je vois son visage. Qui suis-je ?",
+            [
+              [
+                "La reconnaissance faciale",
+                1
+              ],
+              [
+                "Le réveil",
+                0
+              ]
+            ],
+            "L'ordinateur voit le visage sous forme de nombres et les compare."
+          ],
+          [
+            "Je te propose des dessins animés que tu vas adorer. Qui suis-je ?",
+            [
+              [
+                "Le système de recommandation",
+                1
+              ],
+              [
+                "La chaise",
+                0
+              ]
+            ],
+            "Il apprend avec ce que tu as regardé avant, comme dans la leçon sur les motifs."
+          ],
+          [
+            "J'écris en mots ce que tu dis. Qui suis-je ?",
+            [
+              [
+                "La dictée vocale",
+                1
+              ],
+              [
+                "Le crayon de couleur",
+                0
+              ]
+            ],
+            "Comme le microphone de l'atelier de dessin !"
+          ]
+        ],
+        "b": [
+          [
+            "Je trie les messages indésirables et je les garde hors de ta boîte de réception. Qui suis-je ?",
+            [
+              [
+                "Le filtre anti-spam",
+                1
+              ],
+              [
+                "L'imprimante",
+                0
+              ],
+              [
+                "La calculatrice",
+                0
+              ]
+            ],
+            "Il a appris avec des exemples de messages indésirables et de messages normaux."
+          ],
+          [
+            "Je prédis un embouteillage avant que tu y arrives. Qui suis-je ?",
+            [
+              [
+                "L'appli de cartes et de navigation",
+                1
+              ],
+              [
+                "Un feu tricolore ordinaire",
+                0
+              ],
+              [
+                "Le compteur de vitesse de la voiture",
+                0
+              ]
+            ],
+            "Elle rassemble des données sur la circulation des voitures et trouve les motifs."
+          ],
+          [
+            "J'aide le médecin à lire les radios. Qui suis-je ?",
+            [
+              [
+                "Un modèle médical de vision par ordinateur",
+                1
+              ],
+              [
+                "Le thermomètre",
+                0
+              ],
+              [
+                "Le stéthoscope du médecin",
+                0
+              ]
+            ],
+            "Il a vu des milliers d'images et aide le médecin, et c'est le médecin qui décide."
+          ],
+          [
+            "Je traduis un panneau dans un autre pays quand tu pointes la caméra dessus. Qui suis-je ?",
+            [
+              [
+                "La traduction par caméra",
+                1
+              ],
+              [
+                "Les jumelles",
+                0
+              ],
+              [
+                "La boussole",
+                0
+              ]
+            ],
+            "Elle lit les lettres sur l'image, puis les traduit, comme dans la petite leçon du mois dernier."
+          ],
+          [
+            "Je sais que ton chat est un chat sur tes photos et je range ses photos ensemble. Qui suis-je ?",
+            [
+              [
+                "Le tri des photos",
+                1
+              ],
+              [
+                "Un album papier",
+                0
+              ],
+              [
+                "La gomme",
+                0
+              ]
+            ],
+            "Il a appris avec plein d'images de chats, comme dans la leçon 2."
+          ]
+        ]
+      }
+    },
+    {
+      "id": "2027-01-space",
+      "month": "2027-01",
+      "kind": "story",
+      "icon": "🚀",
+      "title": "Un voyage dans l'espace",
+      "sub": {
+        "s": "Écris une histoire dans l'espace",
+        "b": "Nouveau thème d'histoires : l'espace"
+      },
+      "intro": {
+        "s": "Ce mois-ci, on écrit des histoires dans l'espace ! Choisis le héros et le lieu, et Nabeeh commence l'histoire. 🌙",
+        "b": "Le thème d'histoires du mois : une aventure dans l'espace. Choisis le héros, le lieu et le problème, ou écris ta propre idée, puis écris à tour de rôle avec Nabeeh."
+      },
+      "chips": {
+        "s": [
+          {
+            "l": "Le héros",
+            "o": [
+              "Un petit robot",
+              "Un chat astronaute",
+              "Une fille qui adore les étoiles",
+              "Un garçon qui adore les planètes"
+            ]
+          },
+          {
+            "l": "Le lieu",
+            "o": [
+              "sur la lune",
+              "dans un vaisseau spatial",
+              "près d'une étoile brillante",
+              "sur une planète rouge"
+            ]
+          }
+        ],
+        "b": [
+          {
+            "l": "Le héros",
+            "o": [
+              "Un robot explorateur",
+              "Une jeune astronome",
+              "Un jeune ingénieur de fusées",
+              "Une chatte volante"
+            ]
+          },
+          {
+            "l": "Le lieu",
+            "o": [
+              "dans une station spatiale",
+              "sur une planète en bonbons",
+              "sur les anneaux de Saturne",
+              "sur la face cachée de la lune"
+            ]
+          },
+          {
+            "l": "Le problème",
+            "o": [
+              "la radio est tombée en panne",
+              "une petite étoile s'est perdue",
+              "l'équipe a besoin d'eau",
+              "un message étrange est arrivé"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
