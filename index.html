@@ -260,6 +260,14 @@ details ol{margin:8px 0 0;padding-inline-start:1.3em}
 .rp-tile span{font-size:1.6rem}.rp-tile b{font-family:var(--display);font-size:1.5rem}.rp-tile small{opacity:.75;font-size:.85rem}
 .rp-pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;margin-top:6px}.rp-pics img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;background:var(--line)}
 .rp-week{align-items:center}.rp-tips ul{margin:6px 0 0;padding-inline-start:20px}#p-report .tag{display:inline-block;margin:2px;background:var(--line);color:var(--ink);font-size:.9rem;padding:2px 8px}
+.cam-wrap{position:relative;width:100%;max-width:420px;align-self:center;aspect-ratio:4/3;border-radius:20px;overflow:hidden;background:#1D2B4A}
+.cam-wrap video{width:100%;height:100%;object-fit:cover;display:block}.cam-wrap.mirror video{transform:scaleX(-1)}
+.cam-off{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#fff;padding:16px;background:#1D2B4A}.cam-off[hidden]{display:none}
+.ct-classes{display:flex;flex-direction:column;gap:10px}.ct-cl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ct-cl select{min-height:44px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:inherit;padding:4px 8px}
+.ct-hold{touch-action:none;user-select:none;-webkit-user-select:none}.ct-hold.on{background:var(--sun);transform:scale(.96)}
+.ct-cl img,.ct-th{width:64px;height:48px;border-radius:8px;object-fit:cover;background:var(--line);display:inline-block}
+.ct-out{display:flex;flex-direction:column;gap:6px}.ct-best{text-align:center;font-size:2.6rem;line-height:1.2}.ct-best b{font-size:1.2rem}
 .umedia{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}.umedia .btn{min-height:44px;padding:6px 14px}
 .song-bot{position:relative;display:flex;justify-content:center;padding:10px 0}.song-bot .notes{position:absolute;top:0;inset-inline-start:calc(50% + 50px);font-size:1.8rem;opacity:0}.song-bot .n2{inset-inline-start:auto;inset-inline-end:calc(50% + 50px)}
 .song-bot.dance svg{animation:bob 1s ease-in-out infinite}.song-bot.dance .notes{animation:note 1.6s ease-in-out infinite}.song-bot.dance .n2{animation-delay:.8s}
@@ -793,7 +801,7 @@ const T=x=>x==null?'':(typeof x==='string'||Array.isArray(x)||typeof x==='functi
 const P=()=>S.prog[who];
 const starCount=k=>Object.keys(S.prog[k].stars).length;
 
-function show(view){
+function show(view){camStop();
   ['home','map','lesson','parents','cert','studio','story','daily','dict','month'].forEach(v=>$('v-'+v).hidden=v!==view);
   if(typeof closeAsk==='function')closeAsk();
   document.body.className='lv-'+who;
@@ -1013,7 +1021,7 @@ const W={
  star:()=>{const n=LESSONS[L].n;const fresh=!P().stars[n];P().stars[n]=Date.now();if(fresh){const w=wkAct();if(!w.lessons.includes(n))w.lessons.push(n)}save();SFX.star();confetti();setTimeout(checkBadges,1200)}
 };
 
-function renderStep(){
+function renderStep(){camStop();
   const st=steps();cur=Math.max(0,Math.min(st.length-1,cur));
   const s=st[cur],card=$('card');
   card.innerHTML=R[s.t](s);W[s.t]&&W[s.t](s,card);
@@ -1662,6 +1670,7 @@ LESSONS.push(
   ask:{s:'كيف تعلّم أخاك الصغير شكل الدائرة؟',b:'كم مثالاً تظن أن الحاسوب يحتاج ليفرّق بين شكلين؟'}},
  {t:'train',title:'مختبر التدريب',intro:{s:'ارسم ٣ دوائر و٣ خطوط، واضغط «أضف» بعد كل رسمة. ثم ارسم شكلاً جديداً واضغط «خمّن!».',b:'ارسم ٣ أمثلة على الأقل لكل شكل، ثم اختبر النموذج. جرّب رسمة غريبة! هل يخطئ؟ أضف أمثلة أكثر وجرّب مرة أخرى.'},
   classes:{s:[['⭕','دائرة'],['➖','خط']],b:[['⭕','دائرة'],['➖','خط'],['✖️','إكس']]}},
+ {t:'camtrain',title:'مختبر الكاميرا 📷',intro:{s:'الآن علّم نبيه بالكاميرا! اختر شيئين، واضغط مطوّلاً على زر كل شيء وهو أمام الكاميرا. ثم اضغط «جرّب» ليخمّن.',b:'درّب نموذجاً يرى بالكاميرا: اختر ٢ أو ٣ أشياء أو حركات (مثل يد مفتوحة وقبضة)، واجمع أمثلة كثيرة لكل واحد بزوايا مختلفة، ثم اختبره مباشرة. لاحظ: هل يخطئ إذا تغيّر الضوء أو الخلفية؟'}},
  {t:'compare',title:'نموذجك والنماذج الكبيرة',
   a:{pic:'🧪',label:'نموذجك',text:{s:'تعلّم من ٦ رسومات فقط.',b:'تعلّم من بضع رسومات، ويقارن رسمتك الجديدة بأقرب الأمثلة التي رآها.'}},
   b:{pic:'🏭',label:'النماذج الكبيرة',text:{s:'مثل نبيه، تعلّم من كمية هائلة من الأمثلة.',b:'تتدرّب على ملايين الأمثلة وتستعمل حواسيب ضخمة لأسابيع. الفكرة نفسها: أمثلة كثيرة ومتنوّعة، ثم اختبار.'}},
@@ -1984,6 +1993,15 @@ Object.assign(R,{
    <button class="box learn basket" data-b="1"><div class="pic">🧺</div><b>سلّة ٢</b><p style="font-size:2rem">🍎🍏🍎🍏🍎🍏</p></button></div>
    <div id="bi-out" aria-live="polite"></div>`,
  cards:s=>`<h2>${s.title}</h2><p>${T(s.intro)}</p><div class="flip" id="fc">${s.cards.map(([ic,nm],i)=>`<button data-i="${i}" aria-expanded="false"><span class="fic">${ic}</span><b>${nm}</b></button>`).join('')}</div><div class="score" id="fc-score"></div>`,
+ camtrain:s=>`<h2>${s.title}</h2><p>${T(s.intro)}</p>
+   <p class="note">🔒 الصور تبقى في هذا الجهاز ولا تُرسل إلى أي مكان، وتُمسح عندما تغادر هذه الصفحة.</p>
+   <div class="cam-wrap" id="ct-wrap"><video id="ct-vid" playsinline muted aria-label="الكاميرا"></video><div class="cam-off" id="ct-off"><button class="btn sun" id="ct-start">📷 شغّل الكاميرا</button></div></div>
+   <div class="row" style="justify-content:center"><button class="btn ghost" id="ct-flip" hidden>🔄 الكاميرا الأخرى</button></div>
+   <b>١. اختر الأشياء ثم علّم: اضغط مطوّلاً على الزر والشيء أمام الكاميرا</b>
+   <div class="ct-classes" id="ct-classes"></div>
+   <b>٢. اختبر</b>
+   <div class="row" style="justify-content:center"><button class="btn sun" id="ct-test">🔮 جرّب</button><button class="btn ghost" id="ct-reset">🧽 ابدأ من جديد</button></div>
+   <div class="ct-out" id="ct-out" aria-live="polite"></div>`,
  train:s=>{const cl=T(s.classes);return `<h2>${s.title}</h2><p>${T(s.intro)}</p>
    <canvas id="tr-cv" width="240" height="240" style="background:#fff;max-width:280px;touch-action:none;border:3px dashed var(--line)" aria-label="لوحة الرسم"></canvas>
    <div class="row" style="justify-content:center"><button class="btn ghost" id="tr-clear">🧽 امسح اللوحة</button></div>
@@ -2066,6 +2084,7 @@ Object.assign(W,{
   card.querySelectorAll('#fc button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,[ic,nm,tx]=s.cards[i];const open=b.getAttribute('aria-expanded')==='true';
    b.setAttribute('aria-expanded',!open);b.innerHTML=open?`<span class="fic">${ic}</span><b>${nm}</b>`:`<b>${ic} ${nm}</b><span class="back">${T(tx)}</span>`;
    if(!open){seen.add(i);SFX.tap();if(seen.size===s.cards.length)SFX.star()}upd()});upd()},
+ camtrain:(s,card)=>camTrain(card),
  train:(s,card)=>{const cl=T(s.classes);const cv=card.querySelector('#tr-cv'),ctx=cv.getContext('2d');const ex=cl.map(()=>[]);const out=card.querySelector('#tr-out');
   const blank=()=>{ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);ctx.lineWidth=14;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#1D2B4A'};blank();
   let drawing=false,last=null,ink=0;
@@ -2101,6 +2120,49 @@ function openDict(){show('dict');route('#'+who+'/dict');
   c.innerHTML=`<p>${lv()==='s'?'كل درس تنهيه يضيف كلمة جديدة إلى قاموسك!':'الكلمات التي تعلّمتها في الرحلة. أنهِ الدروس لتفتح كلمات جديدة.'}</p><div class="dict">${LESSONS.map(l=>{const f=FACTS[l.n];const has=!!p.stars[l.n];if(has)n++;
    return `<div class="dword${has?'':' off'}"><span class="ic" aria-hidden="true">${has?f.ic:'🔒'}</span><div><b>${has?f.word.w:'كلمة مخفيّة'}</b><small>${has?T(f.word.d):'تُفتح في الدرس '+AR(l.n)}</small></div></div>`}).join('')}</div>`;
   c.insertAdjacentHTML('afterbegin',`<div class="streak">📚 ${AR(n)} من ${AR(LESSONS.length)} كلمة</div>`);
+}
+
+/* ---------- camera training (lesson 15): a tiny model that runs only on this device ----------
+   Each camera frame is shrunk to a 12x9 grid of colours plus a small map of edges. Training
+   examples are kept in memory only; nothing is saved or sent. Guessing = nearest examples (k-NN). */
+let camStream=null,camTimers=[];
+function camStop(){camTimers.forEach(t=>clearInterval(t));camTimers=[];if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}}
+const CAM_PICKS=['✋ يد مفتوحة','✊ قبضة','👍 إبهام','😀 وجهي','📕 كتاب','⚽ كرة','🧸 لعبة','🥤 كوب','🍎 تفاحة','✌️ علامة النصر'];
+function camTrain(card){
+  const vid=card.querySelector('#ct-vid'),out=card.querySelector('#ct-out'),n=lv()==='s'?2:3;
+  let facing='user',classes=CAM_PICKS.slice(0,n).map(l=>({l,ex:[],th:null})),testing=false;
+  const fc=document.createElement('canvas');fc.width=48;fc.height=36;const fx=fc.getContext('2d',{willReadFrequently:true});
+  const feat=()=>{if(!vid.videoWidth)return null;fx.drawImage(vid,0,0,48,36);const d=fx.getImageData(0,0,48,36).data;
+    const v=[];// 12x9 colour grid
+    for(let gy=0;gy<9;gy++)for(let gx=0;gx<12;gx++){let r=0,g=0,b=0;for(let y=0;y<4;y++)for(let x=0;x<4;x++){const i=((gy*4+y)*48+gx*4+x)*4;r+=d[i];g+=d[i+1];b+=d[i+2]}v.push(r/16/255,g/16/255,b/16/255)}
+    const m=[0,1,2].map(c=>v.filter((_,i)=>i%3===c).reduce((a,b)=>a+b,0)/108);for(let i=0;i<v.length;i++)v[i]-=m[i%3];// ignore overall brightness
+    const gr=(x,y)=>{const i=(y*48+x)*4;return (d[i]+d[i+1]+d[i+2])/765};// edge map 12x9
+    for(let gy=0;gy<9;gy++)for(let gx=0;gx<12;gx++){let e=0;for(let y=0;y<4;y++)for(let x=0;x<3;x++){const X=gx*4+x,Y=gy*4+y;e+=Math.abs(gr(X+1,Y)-gr(X,Y))+(Y<35?Math.abs(gr(X,Y+1)-gr(X,Y)):0)}v.push(e/6)}
+    return v};
+  const thumb=()=>{const t=document.createElement('canvas');t.width=64;t.height=48;t.getContext('2d').drawImage(vid,0,0,64,48);return t.toDataURL('image/jpeg',.6)};
+  const paint=()=>{const box=card.querySelector('#ct-classes');
+    box.innerHTML=classes.map((c,i)=>`<div class="ct-cl"><select data-pick="${i}" aria-label="الشيء ${AR(i+1)}">${CAM_PICKS.map(p=>`<option ${p===c.l?'selected':''}>${p}</option>`).join('')}</select>
+      <button class="btn ct-hold" data-hold="${i}">${c.l.split(' ')[0]} علّمه <span class="cnt">(${AR(c.ex.length)})</span></button>${c.th?`<img alt="" src="${c.th}">`:'<span class="ct-th"></span>'}</div>`).join('');
+    box.querySelectorAll('[data-pick]').forEach(sl=>sl.onchange=()=>{const c=classes[+sl.dataset.pick];c.l=sl.value;c.ex=[];c.th=null;paint()});
+    box.querySelectorAll('[data-hold]').forEach(b=>{let t=null;const i=+b.dataset.hold;
+      const stop=()=>{if(t){clearInterval(t);camTimers=camTimers.filter(x=>x!==t);t=null;b.classList.remove('on');paint()}};
+      b.addEventListener('pointerdown',e=>{e.preventDefault();if(!camStream){out.textContent='شغّل الكاميرا أولاً 📷';return}b.classList.add('on');
+        const add=()=>{const f=feat();if(f&&classes[i].ex.length<120){classes[i].ex.push(f);if(!classes[i].th)classes[i].th=thumb();b.querySelector('.cnt').textContent='('+AR(classes[i].ex.length)+')'}};add();t=setInterval(add,120);camTimers.push(t);SFX.tap()});
+      ['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,stop))})};
+  paint();
+  const start=async()=>{camStop();try{camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:{ideal:320},height:{ideal:240}},audio:false});
+      vid.srcObject=camStream;await vid.play();card.querySelector('#ct-off').hidden=true;card.querySelector('#ct-flip').hidden=false;card.querySelector('#ct-wrap').classList.toggle('mirror',facing==='user')}
+    catch(e){card.querySelector('#ct-off').innerHTML=`<p>لم تعمل الكاميرا 📷. اطلب من بابا أو ماما السماح للتطبيق باستعمال الكاميرا، أو جرّب مختبر الرسم في الخطوة السابقة.</p><button class="btn" id="ct-start2">حاول مرة أخرى</button>`;card.querySelector('#ct-start2').onclick=start}};
+  card.querySelector('#ct-start').onclick=start;
+  card.querySelector('#ct-flip').onclick=()=>{facing=facing==='user'?'environment':'user';start()};
+  card.querySelector('#ct-reset').onclick=()=>{classes.forEach(c=>{c.ex=[];c.th=null});testing=false;out.innerHTML='';paint()};
+  const guess=()=>{const f=feat();if(!f)return;const ds=[];classes.forEach((c,ci)=>c.ex.forEach(e=>{let d=0;for(let k=0;k<f.length;k++){const q=e[k]-f[k];d+=q*q}ds.push([d,ci])}));
+    ds.sort((a,b)=>a[0]-b[0]);const k=Math.min(7,ds.length);const votes=classes.map(()=>0);ds.slice(0,k).forEach(([,ci])=>votes[ci]++);const best=votes.indexOf(Math.max(...votes));
+    out.innerHTML=`<div class="ct-best">${classes[best].l.split(' ')[0]}<br><b>${classes[best].l.split(' ').slice(1).join(' ')}</b></div>`+classes.map((c,i)=>`<div class="bar"><span>${c.l}</span><div class="track"><div class="fill" style="width:${Math.round(100*votes[i]/k)}%"></div></div><span class="pct">${AR(Math.round(100*votes[i]/k))}٪</span></div>`).join('')};
+  card.querySelector('#ct-test').onclick=()=>{if(!camStream){out.textContent='شغّل الكاميرا أولاً 📷';return}
+    if(classes.some(c=>c.ex.length<5)){out.textContent='علّم النموذج ٥ أمثلة على الأقل لكل شيء (اضغط مطوّلاً).';SFX.no();return}
+    testing=!testing;card.querySelector('#ct-test').textContent=testing?'⏸️ أوقف التجربة':'🔮 جرّب';
+    if(testing){const t=setInterval(guess,300);camTimers.push(t);guess();SFX.ok()}else{camTimers.forEach(t=>clearInterval(t));camTimers=[]}};
 }
 
 /* ---------- songs and animated story intros (with «نبيه») ---------- */
