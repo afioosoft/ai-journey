@@ -1,0 +1,14 @@
+{
+  "name": "ai-journey-i18n",
+  "private": true,
+  "type": "module",
+  "description": "Tools that make the app's Arabic texts translatable and build the language packs. See README.md.",
+  "scripts": {
+    "transform": "node transform.mjs ../index.html keys.json",
+    "build": "python3 build.py"
+  },
+  "dependencies": {
+    "acorn": "^8.14.0",
+    "acorn-walk": "^8.3.4"
+  }
+}

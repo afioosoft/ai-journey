@@ -8,6 +8,7 @@ Every month the app can show one new item on the journey map. During its month t
 3. Write every text twice: `s` (small level, about 5 to 7, short and simple) and `b` (big level, about 8 to 12).
 4. Commit to `main`. The web app and the store app download the new list the next time they're online. No app update is needed.
 5. Also run the app's build step (or ask Claude) to refresh the copy built into `index.html`, so the item also works offline on first launch.
+6. For the other languages, run `node i18n/transform.mjs index.html i18n/keys.json` and `python3 i18n/build.py`, translate the new texts in `i18n/<code>.json`, and build again. This writes `monthly.en.json` (and German/French when added). See `i18n/README.md`.
 
 Rules: use only the name «نبيه», never AI company or model names. Keep content kid-safe. Never ask the child for personal information. Everything is shown as plain text, so HTML isn't interpreted.
 

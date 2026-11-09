@@ -1,0 +1,395 @@
+{
+  "about": "en version of monthly.json, made by i18n/build.py from the translations in i18n/en.json. Edit monthly.json, then run the build.",
+  "items": [
+    {
+      "id": "2026-11-translate",
+      "month": "2026-11",
+      "kind": "mini",
+      "icon": "🌍",
+      "title": "How does AI translate?",
+      "sub": {
+        "s": "A little lesson about words and languages",
+        "b": "A short lesson: machine translation"
+      },
+      "pages": [
+        {
+          "ic": "🗣️",
+          "s": "There are lots of languages in the world: Arabic, English, Chinese and many more. Sometimes we want to understand someone who doesn't speak our language.",
+          "b": "There are more than seven thousand languages in the world. Machine translation helps us understand writing or speech in a language we don't know, in seconds."
+        },
+        {
+          "ic": "📚",
+          "s": "AI has read a huge number of sentences written in two languages together, like a book where every page is in one language with another language next to it.",
+          "b": "A translation model learned from millions of sentences that were already translated: the sentence in one language, and next to it the same sentence in another. This is the training data, as in lesson 2."
+        },
+        {
+          "ic": "🧩",
+          "s": "It doesn't translate word by word. It understands the whole sentence first, then writes it in the other language. Like retelling a story you heard in your own words.",
+          "b": "The model doesn't translate word for word, because the order of words is different between languages. It turns the whole sentence into numbers that stand for its meaning, then predicts the right words in the other language one after another, as in lesson 3."
+        },
+        {
+          "ic": "🤔",
+          "s": "Sometimes it gets it wrong! A computer “mouse” isn't an animal. So we ask someone who knows the language about important things.",
+          "b": "It can get sayings wrong, and words with more than one meaning, like “bat” (an animal, or something to hit a ball with). So we check important translations with someone who knows both languages."
+        }
+      ],
+      "qs": {
+        "s": [
+          [
+            "Where did AI learn to translate?",
+            [
+              [
+                "From lots of sentences written in two languages",
+                1
+              ],
+              [
+                "From dreams",
+                0
+              ],
+              [
+                "It knew by itself with no examples",
+                0
+              ]
+            ],
+            "It learned from lots of examples: the same sentence in two languages."
+          ],
+          [
+            "Does it translate word by word?",
+            [
+              [
+                "No, it understands the whole sentence first",
+                1
+              ],
+              [
+                "Yes, always word by word",
+                0
+              ]
+            ],
+            "It understands the whole sentence, then writes it in the other language."
+          ],
+          [
+            "Can it make mistakes in translation?",
+            [
+              [
+                "Yes, sometimes",
+                1
+              ],
+              [
+                "No, it never makes mistakes",
+                0
+              ]
+            ],
+            "Any AI can make mistakes, so we check important things."
+          ]
+        ],
+        "b": [
+          [
+            "What do we call the translated sentences the model learned from?",
+            [
+              [
+                "Training data",
+                1
+              ],
+              [
+                "Password",
+                0
+              ],
+              [
+                "Pixels",
+                0
+              ]
+            ],
+            "The examples a model learns from are called training data."
+          ],
+          [
+            "Why doesn't word-by-word translation work?",
+            [
+              [
+                "Because word order and meanings are different between languages",
+                1
+              ],
+              [
+                "Because the computer is slow",
+                0
+              ],
+              [
+                "Because all languages are alike",
+                0
+              ]
+            ],
+            "Every language has its own order and expressions, so you have to understand the meaning of the whole sentence."
+          ],
+          [
+            "You translated an important message for your grandma. What do you do?",
+            [
+              [
+                "I ask someone who knows both languages to check it",
+                1
+              ],
+              [
+                "I send it straight away without checking",
+                0
+              ],
+              [
+                "I translate it word by word with a dictionary",
+                0
+              ]
+            ],
+            "Machine translation is useful, but it can be wrong, so we check the important parts."
+          ]
+        ]
+      },
+      "home": {
+        "s": "Choose three words with Dad or Mum, and learn how to say them in another language. Which is hardest?",
+        "b": "Write a saying (like “it's raining cats and dogs”) and ask someone in the family to translate it word for word into another language. Did the meaning stay the same? Why?"
+      }
+    },
+    {
+      "id": "2026-12-whoami",
+      "month": "2026-12",
+      "kind": "challenge",
+      "icon": "🕵️",
+      "title": "The “Who am I?” challenge: smart tools around us",
+      "sub": {
+        "s": "Guess the smart tool",
+        "b": "Riddle challenge: 5 smart tools"
+      },
+      "intro": {
+        "s": "I'll describe a smart tool to you. Guess what it is! 🔍",
+        "b": "Five riddles about AI tools we use every day. Read the description and guess the tool."
+      },
+      "qs": {
+        "s": [
+          [
+            "I hear your voice and answer you: “What time is it?” Who am I?",
+            [
+              [
+                "The voice assistant",
+                1
+              ],
+              [
+                "An ordinary fridge",
+                0
+              ]
+            ],
+            "A voice assistant turns your speech into words, then answers."
+          ],
+          [
+            "I know the way and tell Dad: “Turn right.” Who am I?",
+            [
+              [
+                "The maps app",
+                1
+              ],
+              [
+                "The lamp",
+                0
+              ]
+            ],
+            "A maps app predicts the fastest route."
+          ],
+          [
+            "I unlock Mum's phone when I see her face. Who am I?",
+            [
+              [
+                "Face recognition",
+                1
+              ],
+              [
+                "The alarm clock",
+                0
+              ]
+            ],
+            "The computer sees the face as numbers and compares them."
+          ],
+          [
+            "I suggest cartoons you'll love. Who am I?",
+            [
+              [
+                "The recommendation system",
+                1
+              ],
+              [
+                "The chair",
+                0
+              ]
+            ],
+            "It learns from what you watched before, as in the patterns lesson."
+          ],
+          [
+            "I write down what you say in words. Who am I?",
+            [
+              [
+                "Speech-to-text",
+                1
+              ],
+              [
+                "The coloured pencil",
+                0
+              ]
+            ],
+            "Like the microphone in the drawing studio!"
+          ]
+        ],
+        "b": [
+          [
+            "I sort annoying junk messages and keep them out of your inbox. Who am I?",
+            [
+              [
+                "The spam filter",
+                1
+              ],
+              [
+                "The printer",
+                0
+              ],
+              [
+                "The calculator",
+                0
+              ]
+            ],
+            "It learned from examples of junk messages and normal ones."
+          ],
+          [
+            "I predict a traffic jam before you reach it. Who am I?",
+            [
+              [
+                "The maps and navigation app",
+                1
+              ],
+              [
+                "An ordinary traffic light",
+                0
+              ],
+              [
+                "The car's speedometer",
+                0
+              ]
+            ],
+            "It collects data about car traffic and finds the patterns."
+          ],
+          [
+            "I help the doctor read X-ray pictures. Who am I?",
+            [
+              [
+                "A medical computer-vision model",
+                1
+              ],
+              [
+                "The thermometer",
+                0
+              ],
+              [
+                "The doctor's stethoscope",
+                0
+              ]
+            ],
+            "It has seen thousands of pictures and helps the doctor, and the doctor is the one who decides."
+          ],
+          [
+            "I translate a sign in another country when you point the camera at it. Who am I?",
+            [
+              [
+                "Camera translation",
+                1
+              ],
+              [
+                "Binoculars",
+                0
+              ],
+              [
+                "The compass",
+                0
+              ]
+            ],
+            "It reads the letters in the picture, then translates them, like last month's little lesson."
+          ],
+          [
+            "I know your cat is a cat in your photos and put its pictures together. Who am I?",
+            [
+              [
+                "Photo sorting",
+                1
+              ],
+              [
+                "A paper album",
+                0
+              ],
+              [
+                "The eraser",
+                0
+              ]
+            ],
+            "It learned from lots of cat pictures, as in lesson 2."
+          ]
+        ]
+      }
+    },
+    {
+      "id": "2027-01-space",
+      "month": "2027-01",
+      "kind": "story",
+      "icon": "🚀",
+      "title": "A trip to space",
+      "sub": {
+        "s": "Write a story in space",
+        "b": "New story theme: space"
+      },
+      "intro": {
+        "s": "This month we're writing stories in space! Choose the hero and the place, and Nabeeh starts the story. 🌙",
+        "b": "This month's story theme: an adventure in space. Choose the hero, the place and the problem, or write your own idea, then take turns with Nabeeh."
+      },
+      "chips": {
+        "s": [
+          {
+            "l": "The hero",
+            "o": [
+              "A little robot",
+              "An astronaut cat",
+              "A girl who loves the stars",
+              "A boy who loves the planets"
+            ]
+          },
+          {
+            "l": "Place",
+            "o": [
+              "on the moon",
+              "on a spaceship",
+              "near a shining star",
+              "on a red planet"
+            ]
+          }
+        ],
+        "b": [
+          {
+            "l": "The hero",
+            "o": [
+              "An explorer robot",
+              "A girl astronomer",
+              "A boy rocket engineer",
+              "A flying cat"
+            ]
+          },
+          {
+            "l": "Place",
+            "o": [
+              "on a space station",
+              "on a candy planet",
+              "on Saturn's rings",
+              "on the dark side of the moon"
+            ]
+          },
+          {
+            "l": "The problem",
+            "o": [
+              "the radio broke down",
+              "a little star got lost",
+              "the team needs water",
+              "a strange message arrived"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
